@@ -1,37 +1,34 @@
 using System.Diagnostics;
-using Fair_Share_Backend.Models;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Fair_Share_Backend.Controllers
+namespace Fair_Share_Backend.Controllers;
+
+[ApiController]
+[Route("api/[controller]")]
+public class HomeController : ControllerBase
 {
-    public class HomeController : Controller
+    private readonly ILogger<HomeController> _logger;
+
+    public HomeController(ILogger<HomeController> logger)
     {
-        private readonly ILogger<HomeController> _logger;
+        _logger = logger;
+    }
 
-        public HomeController(ILogger<HomeController> logger)
-        {
-            _logger = logger;
-        }
+    [HttpGet]
+    public IActionResult Index()
+    {
+        return Ok(new { message = "Work in progress" });
+    }
 
-        public IActionResult Index()
-        {
-            return View();
-        }
+    [HttpGet("privacy")]
+    public IActionResult Privacy()
+    {
+        return Ok(new { message = "Privacy endpoint" });
+    }
 
-        public IActionResult Privacy()
-        {
-            return View();
-        }
-
-        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-        public IActionResult Error()
-        {
-            return View(
-                new ErrorViewModel
-                {
-                    RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier
-                }
-            );
-        }
+    [HttpGet("error")]
+    public IActionResult Error()
+    {
+        return Problem(detail: "An unexpected error occurred.", statusCode: 500);
     }
 }
