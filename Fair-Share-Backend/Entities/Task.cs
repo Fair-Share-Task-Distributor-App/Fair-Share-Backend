@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
-namespace Fair_Share_Backend.Models;
+namespace Fair_Share_Backend.Entities;
 
 [Table("task")]
 public partial class TeamTask // RENAMED from Task

@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using Fair_Share_Backend.Models;
+using Fair_Share_Backend.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace Fair_Share_Backend.Data;
