@@ -6,13 +6,13 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Fair_Share_Backend.Entities;
 
-[PrimaryKey("MemberId", "TaskId")]
-[Table("member_task")]
-public partial class MemberTask
+[PrimaryKey("AccountId", "TaskId")]
+[Table("account_task")]
+public partial class AccountTask
 {
     [Key]
-    [Column("member_id")]
-    public int MemberId { get; set; }
+    [Column("account_id")]
+    public int AccountId { get; set; }
 
     [Key]
     [Column("task_id")]
@@ -21,11 +21,11 @@ public partial class MemberTask
     [Column("assigned_at", TypeName = "timestamp without time zone")]
     public DateTime AssignedAt { get; set; }
 
-    [ForeignKey("MemberId")]
-    [InverseProperty("MemberTasks")]
-    public virtual Member Member { get; set; } = null!;
+    [ForeignKey("AccountId")]
+    [InverseProperty("AccountTasks")]
+    public virtual Account Account { get; set; } = null!;
 
     [ForeignKey("TaskId")]
-    [InverseProperty("MemberTasks")]
+    [InverseProperty("AccountTasks")]
     public virtual TeamTask Task { get; set; } = null!;
 }

@@ -16,7 +16,6 @@ public partial class Team
     [Column("name")]
     public string Name { get; set; } = null!;
 
-    [ForeignKey("TeamId")]
-    [InverseProperty("Teams")]
-    public virtual ICollection<Member> Members { get; set; } = new List<Member>();
+    [InverseProperty("Team")]
+    public virtual ICollection<TeamAccount> TeamAccounts { get; set; } = new List<TeamAccount>();
 }

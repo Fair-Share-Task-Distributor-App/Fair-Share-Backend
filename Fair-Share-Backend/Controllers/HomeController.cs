@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Fair_Share_Backend.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("[controller]")]
 public class HomeController : ControllerBase
 {
     private readonly ILogger<HomeController> _logger;

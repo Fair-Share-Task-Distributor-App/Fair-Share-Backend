@@ -29,5 +29,5 @@ public partial class TeamTask // RENAMED from Task
     public bool IsCompleted { get; set; }
 
     [InverseProperty("Task")]
-    public virtual ICollection<MemberTask> MemberTasks { get; set; } = new List<MemberTask>();
+    public virtual ICollection<AccountTask> AccountTasks { get; set; } = new List<AccountTask>();
 }

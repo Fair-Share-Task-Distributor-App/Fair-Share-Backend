@@ -1,0 +1,31 @@
+﻿using Fair_Share_Backend.DTOs.Auth;
+using Fair_Share_Backend.Entities;
+
+namespace Fair_Share_Backend.Mappers
+{
+    public class AccountMapper
+    {
+        public Account ToEntity(SignupRequestDto request, string passwordHash)
+        {
+            return new Account
+            {
+                Email = request.Email,
+                Name = request.Name,
+                Password = request.Password,
+                PasswordHash = passwordHash
+            };
+        }
+
+        public AuthResponseDto ToAuthResponseDto(Account account, string token, bool isNewUser)
+        {
+            return new AuthResponseDto
+            {
+                Token = token,
+                AccountId = account.Id,
+                Email = account.Email,
+                Name = account.Name,
+                IsNewUser = isNewUser
+            };
+        }
+    }
+}

@@ -1,5 +1,10 @@
+using System.Text;
 using Fair_Share_Backend.Data;
+using Fair_Share_Backend.Mappers;
+using Fair_Share_Backend.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,6 +16,48 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"))
 );
 
+// Register AuthService
+builder.Services.AddScoped<AuthService>();
+
+builder.Services.AddScoped<AccountMapper>();
+
+// Configure JWT Authentication
+builder
+    .Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            ValidAudience = builder.Configuration["Jwt:Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"] ?? string.Empty)
+            )
+        };
+    });
+
+builder.Services.AddAuthorization();
+
+// Add CORS if needed for frontend
+//builder.Services.AddCors(options =>
+//{
+//    options.AddPolicy(
+//        "AllowFrontend",
+//        policy =>
+//        {
+//            policy
+//                .WithOrigins(builder.Configuration["Cors:AllowedOrigins"]?.Split(',') ?? [])
+//                .AllowAnyMethod()
+//                .AllowAnyHeader()
+//                .AllowCredentials();
+//        }
+//    );
+//});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -21,11 +68,14 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-app.UseHttpsRedirection();
-app.UseStaticFiles();
+//app.UseHttpsRedirection();
+//app.UseStaticFiles();
 
 app.UseRouting();
 
+//app.UseCors("AllowFrontend");
+
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
