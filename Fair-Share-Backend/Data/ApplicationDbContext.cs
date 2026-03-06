@@ -16,9 +16,11 @@ public partial class ApplicationDbContext : DbContext
 
     public virtual DbSet<AccountTask> AccountTasks { get; set; }
 
-    public virtual DbSet<TeamTask> Tasks { get; set; }
+    public virtual DbSet<Entities.Task> Tasks { get; set; }
 
     public virtual DbSet<Team> Teams { get; set; }
+
+    public virtual DbSet<TeamAccount> TeamAccounts { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) =>
         optionsBuilder.UseNpgsql("Name=ConnectionStrings:DefaultConnection");
@@ -47,11 +49,17 @@ public partial class ApplicationDbContext : DbContext
                 .HasConstraintName("account_task_task_id_fkey");
         });
 
-        modelBuilder.Entity<TeamTask>(entity =>
+        modelBuilder.Entity<Entities.Task>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("task_pkey");
 
             entity.Property(e => e.IsCompleted).HasDefaultValue(false);
+
+            entity
+                .HasOne(d => d.TeamOwned)
+                .WithMany(p => p.Tasks)
+                .HasForeignKey(d => d.TeamOwnedId)
+                .HasConstraintName("task_team_owned_id_fkey");
         });
 
         modelBuilder.Entity<Team>(entity =>

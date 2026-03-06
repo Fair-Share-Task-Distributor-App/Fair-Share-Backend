@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Fair_Share_Backend.Entities;
 
 [Table("task")]
-public partial class TeamTask // RENAMED from Task
+public partial class Task
 {
     [Key]
     [Column("id")]
@@ -28,6 +28,18 @@ public partial class TeamTask // RENAMED from Task
     [Column("is_completed")]
     public bool IsCompleted { get; set; }
 
+    [Column("points")]
+    public int Points { get; set; }
+
+    [Column("team_owned_id")]
+    public int TeamOwnedId { get; set; }
+
+    [ForeignKey("TeamOwnedId")]
+    public Team TeamOwned { get; set; } = null!;
+
     [InverseProperty("Task")]
     public virtual ICollection<AccountTask> AccountTasks { get; set; } = new List<AccountTask>();
+
+    public virtual ICollection<AccountTaskPreference> AccountTaskPreferences { get; set; } =
+        new List<AccountTaskPreference>();
 }

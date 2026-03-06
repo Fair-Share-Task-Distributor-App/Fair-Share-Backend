@@ -16,10 +16,15 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"))
 );
 
-// Register AuthService
+// Register Services
 builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<TaskService>();
+builder.Services.AddScoped<TeamService>();
 
+// Register Mappers
 builder.Services.AddScoped<AccountMapper>();
+builder.Services.AddScoped<TaskMapper>();
+builder.Services.AddScoped<TeamMapper>();
 
 // Configure JWT Authentication
 builder

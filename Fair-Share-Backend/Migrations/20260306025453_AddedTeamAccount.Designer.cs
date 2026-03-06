@@ -3,6 +3,7 @@ using System;
 using Fair_Share_Backend.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Fair_Share_Backend.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260306025453_AddedTeamAccount")]
+    partial class AddedTeamAccount
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -139,10 +142,6 @@ namespace Fair_Share_Backend.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("points");
 
-                    b.Property<int>("TeamOwnedId")
-                        .HasColumnType("integer")
-                        .HasColumnName("team_owned_id");
-
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasColumnType("text")
@@ -150,8 +149,6 @@ namespace Fair_Share_Backend.Migrations
 
                     b.HasKey("Id")
                         .HasName("task_pkey");
-
-                    b.HasIndex("TeamOwnedId");
 
                     b.ToTable("task");
                 });
@@ -234,18 +231,6 @@ namespace Fair_Share_Backend.Migrations
                     b.Navigation("Task");
                 });
 
-            modelBuilder.Entity("Fair_Share_Backend.Entities.Task", b =>
-                {
-                    b.HasOne("Fair_Share_Backend.Entities.Team", "TeamOwned")
-                        .WithMany("Tasks")
-                        .HasForeignKey("TeamOwnedId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("task_team_owned_id_fkey");
-
-                    b.Navigation("TeamOwned");
-                });
-
             modelBuilder.Entity("TeamAccount", b =>
                 {
                     b.HasOne("Fair_Share_Backend.Entities.Account", "Account")
@@ -285,8 +270,6 @@ namespace Fair_Share_Backend.Migrations
 
             modelBuilder.Entity("Fair_Share_Backend.Entities.Team", b =>
                 {
-                    b.Navigation("Tasks");
-
                     b.Navigation("TeamAccounts");
                 });
 #pragma warning restore 612, 618

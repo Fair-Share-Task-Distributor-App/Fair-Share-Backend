@@ -7,8 +7,8 @@ using Microsoft.EntityFrameworkCore;
 namespace Fair_Share_Backend.Entities;
 
 [PrimaryKey("AccountId", "TaskId")]
-[Table("account_task")]
-public partial class AccountTask
+[Table("account_task_preference")]
+public class AccountTaskPreference
 {
     [Key]
     [Column("account_id")]
@@ -18,14 +18,12 @@ public partial class AccountTask
     [Column("task_id")]
     public int TaskId { get; set; }
 
-    [Column("assigned_at", TypeName = "timestamp without time zone")]
-    public DateTime AssignedAt { get; set; }
+    [Column("score")]
+    public int Score { get; set; }
 
     [ForeignKey("AccountId")]
-    [InverseProperty("AccountTasks")]
-    public virtual Account Account { get; set; } = null!;
+    public Account Account { get; set; } = null!;
 
     [ForeignKey("TaskId")]
-    [InverseProperty("AccountTasks")]
-    public virtual Task Task { get; set; } = null!;
+    public Task Task { get; set; } = null!;
 }

@@ -18,4 +18,7 @@ public partial class Team
 
     [InverseProperty("Team")]
     public virtual ICollection<TeamAccount> TeamAccounts { get; set; } = new List<TeamAccount>();
+
+    [InverseProperty("TeamOwned")]
+    public virtual ICollection<Task> Tasks { get; set; } = new List<Task>();
 }

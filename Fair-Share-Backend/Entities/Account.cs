@@ -30,9 +30,15 @@ public partial class Account
     [Column("password_hash")]
     public string PasswordHash { get; set; } = null!;
 
+    [Column("points")]
+    public int Points { get; set; }
+
     [InverseProperty("Account")]
     public virtual ICollection<AccountTask> AccountTasks { get; set; } = new List<AccountTask>();
 
     [InverseProperty("Account")]
     public virtual ICollection<TeamAccount> TeamAccounts { get; set; } = new List<TeamAccount>();
+
+    public virtual ICollection<AccountTaskPreference> AccountTaskPreferences { get; set; } =
+        new List<AccountTaskPreference>();
 }

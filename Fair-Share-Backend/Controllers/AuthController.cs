@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Fair_Share_Backend.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("api/[controller]")]
     public class AuthController : ControllerBase
     {
         private readonly AuthService _authService;
