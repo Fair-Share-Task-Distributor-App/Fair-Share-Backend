@@ -1,4 +1,5 @@
 using System.Text;
+using Fair_Share_Backend;
 using Fair_Share_Backend.Data;
 using Fair_Share_Backend.Mappers;
 using Fair_Share_Backend.Services;
@@ -10,6 +11,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 // For Swagger UI
 builder.Services.AddSwaggerGen();
+
+builder.Services.AddExceptionHandler<AppExceptionHandler>();
 
 // Add services to the container.
 builder.Services.AddControllers();
@@ -68,6 +71,9 @@ builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
+// Add exception handler middleware
+app.UseExceptionHandler(options => { });
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -77,7 +83,6 @@ if (app.Environment.IsDevelopment())
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
-    app.UseExceptionHandler("/Home/Error");
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }

@@ -25,52 +25,36 @@ namespace Fair_Share_Backend.Services
 
         public async Task<TaskResponseDto> CreateTaskAsync(CreateTaskRequestDto request)
         {
-            try
-            {
-                var task = _mapper.ToEntity(request);
+            var task = _mapper.ToEntity(request);
 
-                _context.Tasks.Add(task);
-                await _context.SaveChangesAsync();
+            _context.Tasks.Add(task);
+            await _context.SaveChangesAsync();
 
-                // Reload with relationships
-                task = await _context
-                    .Tasks.Include(t => t.AccountTasks)
-                    .ThenInclude(at => at.Account)
-                    .FirstAsync(t => t.Id == task.Id);
+            // Reload with relationships
+            task = await _context
+                .Tasks.Include(t => t.AccountTasks)
+                .ThenInclude(at => at.Account)
+                .FirstAsync(t => t.Id == task.Id);
 
-                _logger.LogInformation("Task created: {TaskId} - {Title}", task.Id, task.Title);
+            _logger.LogInformation("Task created: {TaskId} - {Title}", task.Id, task.Title);
 
-                return _mapper.ToDto(task);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error creating task");
-                throw;
-            }
+            return _mapper.ToDto(task);
         }
 
         public async Task<TaskResponseDto?> GetTaskByIdAsync(int id)
         {
-            try
-            {
-                var task = await _context
-                    .Tasks.Include(t => t.AccountTasks)
-                    .ThenInclude(at => at.Account)
-                    .FirstOrDefaultAsync(t => t.Id == id);
+            var task = await _context
+                .Tasks.Include(t => t.AccountTasks)
+                .ThenInclude(at => at.Account)
+                .FirstOrDefaultAsync(t => t.Id == id);
 
-                if (task == null)
-                {
-                    _logger.LogWarning("Task not found: {TaskId}", id);
-                    return null;
-                }
-
-                return _mapper.ToDto(task);
-            }
-            catch (Exception ex)
+            if (task == null)
             {
-                _logger.LogError(ex, "Error fetching task {TaskId}", id);
-                throw;
+                _logger.LogWarning("Task not found: {TaskId}", id);
+                return null;
             }
+
+            return _mapper.ToDto(task);
         }
 
         public async Task<List<TaskResponseDto>> GetTasksInTeamAsync(int teamId)
@@ -88,60 +72,44 @@ namespace Fair_Share_Backend.Services
 
         public async Task<TaskResponseDto?> UpdateTaskAsync(int id, UpdateTaskRequestDto request)
         {
-            try
+            var task = await _context.Tasks.FindAsync(id);
+
+            if (task == null)
             {
-                var task = await _context.Tasks.FindAsync(id);
-
-                if (task == null)
-                {
-                    _logger.LogWarning("Task not found for update: {TaskId}", id);
-                    return null;
-                }
-
-                _mapper.UpdateEntity(task, request);
-                await _context.SaveChangesAsync();
-
-                // Reload with relationships
-                task = await _context
-                    .Tasks.Include(t => t.AccountTasks)
-                    .ThenInclude(at => at.Account)
-                    .FirstAsync(t => t.Id == id);
-
-                _logger.LogInformation("Task updated: {TaskId}", id);
-
-                return _mapper.ToDto(task);
+                _logger.LogWarning("Task not found for update: {TaskId}", id);
+                return null;
             }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error updating task {TaskId}", id);
-                throw;
-            }
+
+            _mapper.UpdateEntity(task, request);
+            await _context.SaveChangesAsync();
+
+            // Reload with relationships
+            task = await _context
+                .Tasks.Include(t => t.AccountTasks)
+                .ThenInclude(at => at.Account)
+                .FirstAsync(t => t.Id == id);
+
+            _logger.LogInformation("Task updated: {TaskId}", id);
+
+            return _mapper.ToDto(task);
         }
 
         public async Task<bool> DeleteTaskAsync(int id)
         {
-            try
+            var task = await _context.Tasks.FindAsync(id);
+
+            if (task == null)
             {
-                var task = await _context.Tasks.FindAsync(id);
-
-                if (task == null)
-                {
-                    _logger.LogWarning("Task not found for deletion: {TaskId}", id);
-                    return false;
-                }
-
-                _context.Tasks.Remove(task);
-                await _context.SaveChangesAsync();
-
-                _logger.LogInformation("Task deleted: {TaskId}", id);
-
-                return true;
+                _logger.LogWarning("Task not found for deletion: {TaskId}", id);
+                return false;
             }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error deleting task {TaskId}", id);
-                throw;
-            }
+
+            _context.Tasks.Remove(task);
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("Task deleted: {TaskId}", id);
+
+            return true;
         }
 
         public async Task<TaskResponseDto?> AssignTaskToAccountsAsync(
@@ -149,65 +117,54 @@ namespace Fair_Share_Backend.Services
             AssignTaskRequestDto request
         )
         {
-            try
-            {
-                var task = await _context
-                    .Tasks.Include(t => t.AccountTasks)
-                    .FirstOrDefaultAsync(t => t.Id == taskId);
+            var task = await _context
+                .Tasks.Include(t => t.AccountTasks)
+                .FirstOrDefaultAsync(t => t.Id == taskId);
 
-                if (task == null)
+            if (task == null)
+            {
+                _logger.LogWarning("Task not found for assignment: {TaskId}", taskId);
+                return null;
+            }
+
+            // Remove existing assignments
+            _context.AccountTasks.RemoveRange(task.AccountTasks);
+
+            // Add new assignments
+            foreach (var accountId in request.AccountIds)
+            {
+                var accountExists = await _context.Accounts.AnyAsync(a => a.Id == accountId);
+                if (!accountExists)
                 {
-                    _logger.LogWarning("Task not found for assignment: {TaskId}", taskId);
-                    return null;
+                    _logger.LogWarning("Account not found for assignment: {AccountId}", accountId);
+                    continue;
                 }
 
-                // Remove existing assignments
-                _context.AccountTasks.RemoveRange(task.AccountTasks);
-
-                // Add new assignments
-                foreach (var accountId in request.AccountIds)
-                {
-                    var accountExists = await _context.Accounts.AnyAsync(a => a.Id == accountId);
-                    if (!accountExists)
+                task.AccountTasks.Add(
+                    new AccountTask
                     {
-                        _logger.LogWarning(
-                            "Account not found for assignment: {AccountId}",
-                            accountId
-                        );
-                        continue;
+                        TaskId = taskId,
+                        AccountId = accountId,
+                        AssignedAt = DateTime.UtcNow
                     }
-
-                    task.AccountTasks.Add(
-                        new AccountTask
-                        {
-                            TaskId = taskId,
-                            AccountId = accountId,
-                            AssignedAt = DateTime.UtcNow
-                        }
-                    );
-                }
-
-                await _context.SaveChangesAsync();
-
-                // Reload with updated relationships
-                task = await _context
-                    .Tasks.Include(t => t.AccountTasks)
-                    .ThenInclude(at => at.Account)
-                    .FirstAsync(t => t.Id == taskId);
-
-                _logger.LogInformation(
-                    "Task {TaskId} assigned to {Count} accounts",
-                    taskId,
-                    request.AccountIds.Count
                 );
+            }
 
-                return _mapper.ToDto(task);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error assigning task {TaskId}", taskId);
-                throw;
-            }
+            await _context.SaveChangesAsync();
+
+            // Reload with updated relationships
+            task = await _context
+                .Tasks.Include(t => t.AccountTasks)
+                .ThenInclude(at => at.Account)
+                .FirstAsync(t => t.Id == taskId);
+
+            _logger.LogInformation(
+                "Task {TaskId} assigned to {Count} accounts",
+                taskId,
+                request.AccountIds.Count
+            );
+
+            return _mapper.ToDto(task);
         }
     }
 }

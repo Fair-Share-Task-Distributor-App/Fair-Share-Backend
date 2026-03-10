@@ -1,14 +1,18 @@
-﻿using System.IdentityModel.Tokens.Jwt;
+﻿using System.Data;
+using System.Data.Common;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using BCrypt.Net;
 using Fair_Share_Backend.Data;
 using Fair_Share_Backend.DTOs.Auth;
 using Fair_Share_Backend.Entities;
+using Fair_Share_Backend.Exceptions;
 using Fair_Share_Backend.Mappers;
 using Google.Apis.Auth;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Npgsql;
 
 namespace Fair_Share_Backend.Services
 {
@@ -113,93 +117,69 @@ namespace Fair_Share_Backend.Services
 
         public async Task<AuthResponseDto?> LoginAsync(LoginRequestDto request)
         {
-            try
+            // Find user by email or name
+            var account = await _context.Accounts.FirstOrDefaultAsync(a =>
+                a.Email == request.Email || a.Name == request.Name
+            );
+
+            if (account == null || account.PasswordHash == null)
             {
-                // Find user by email or name
-                var account = await _context.Accounts.FirstOrDefaultAsync(a =>
-                    a.Email == request.Email || a.Name == request.Name
-                );
-
-                if (account == null || account.PasswordHash == null)
-                {
-                    _logger.LogWarning("Login failed: User not found - {Email}", request.Email);
-                    return null;
-                }
-
-                // Verify password
-                if (!BCrypt.Net.BCrypt.Verify(request.Password, account.PasswordHash))
-                {
-                    _logger.LogWarning("Login failed: Invalid password - {Email}", request.Email);
-                    return null;
-                }
-
-                // Generate JWT
-                var token = GenerateJwtToken(account);
-
-                _logger.LogInformation("User logged in successfully: {Email}", account.Email);
-
-                var response = _accountMapper.ToAuthResponseDto(account, token, false);
-
-                return response;
+                _logger.LogWarning("Login failed: User not found - {Email}", request.Email);
+                return null;
             }
-            catch (Exception ex)
+
+            // Verify password
+            if (!BCrypt.Net.BCrypt.Verify(request.Password, account.PasswordHash))
             {
-                _logger.LogError(ex, "Error during login");
-                throw;
+                _logger.LogWarning("Login failed: Invalid password - {Email}", request.Email);
+                return null;
             }
+
+            // Generate JWT
+            var token = GenerateJwtToken(account);
+
+            _logger.LogInformation("User logged in successfully: {Email}", account.Email);
+
+            var response = _accountMapper.ToAuthResponseDto(account, token, false);
+
+            return response;
         }
 
         public async Task<AuthResponseDto?> SignupAsync(SignupRequestDto request)
         {
-            try
+            // Check if user already exists
+            var existingAccount = await _context.Accounts.FirstOrDefaultAsync(a =>
+                a.Email == request.Email
+            );
+
+            if (existingAccount != null)
             {
-                // Check if user already exists
-                var existingAccount = await _context.Accounts.FirstOrDefaultAsync(a =>
-                    a.Email == request.Email
-                );
-
-                if (existingAccount != null)
-                {
-                    _logger.LogWarning(
-                        "Signup failed: Email already exists - {Email}",
-                        request.Email
-                    );
-                    return null;
-                }
-
-                // Hash password
-                var passwordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
-
-                // Create new user
-                var account = _accountMapper.ToEntity(request, passwordHash);
-
-                _context.Accounts.Add(account);
-                await _context.SaveChangesAsync();
-
-                // Generate JWT
-                var token = GenerateJwtToken(account);
-
-                _logger.LogInformation("New user signed up: {Email}", account.Email);
-
-                return new AuthResponseDto
-                {
-                    Token = token,
-                    AccountId = account.Id,
-                    Email = account.Email,
-                    Name = account.Name,
-                    IsNewUser = true
-                };
-            }
-            catch (DbUpdateException ex)
-            {
-                _logger.LogError(ex, "Database error during signup");
+                _logger.LogWarning("Signup failed: Email already exists - {Email}", request.Email);
                 return null;
             }
-            catch (Exception ex)
+
+            // Hash password
+            var passwordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
+
+            // Create new user
+            var account = _accountMapper.ToEntity(request, passwordHash);
+
+            _context.Accounts.Add(account);
+            await _context.SaveChangesAsync();
+
+            // Generate JWT
+            var token = GenerateJwtToken(account);
+
+            _logger.LogInformation("New user signed up: {Email}", account.Email);
+
+            return new AuthResponseDto
             {
-                _logger.LogError(ex, "Error during signup");
-                throw;
-            }
+                Token = token,
+                AccountId = account.Id,
+                Email = account.Email,
+                Name = account.Name,
+                IsNewUser = true
+            };
         }
 
         private string GenerateJwtToken(Account account)
