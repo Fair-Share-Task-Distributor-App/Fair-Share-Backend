@@ -8,6 +8,9 @@ using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// For Swagger UI
+builder.Services.AddSwaggerGen();
+
 // Add services to the container.
 builder.Services.AddControllers();
 
@@ -64,6 +67,12 @@ builder.Services.AddAuthorization();
 //});
 
 var app = builder.Build();
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
