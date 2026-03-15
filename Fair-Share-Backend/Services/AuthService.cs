@@ -7,7 +7,6 @@ using BCrypt.Net;
 using Fair_Share_Backend.Data;
 using Fair_Share_Backend.DTOs.Auth;
 using Fair_Share_Backend.Entities;
-using Fair_Share_Backend.Exceptions;
 using Fair_Share_Backend.Mappers;
 using Google.Apis.Auth;
 using Microsoft.EntityFrameworkCore;

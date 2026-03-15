@@ -145,26 +145,23 @@ namespace Fair_Share_Backend.Services
                 .Teams.Include(t => t.TeamAccounts)
                 .FirstOrDefaultAsync(t => t.Id == teamId);
 
-            if (team == null)
+            foreach (var email in request.Emails)
             {
-                _logger.LogWarning("Team not found: {TeamId}", teamId);
-                return null;
-            }
+                var accountId = _context
+                    .Accounts.Where(a => a.Email == email)
+                    .Select(a => a.Id)
+                    .FirstOrDefault();
 
-            foreach (var accountId in request.AccountIds)
-            {
-                // Check if already a member
-                var alreadyMember = team.TeamAccounts.Any(ta => ta.AccountId == accountId);
-                if (alreadyMember)
-                    continue;
-
-                // Check if account exists
-                var accountExists = await _context.Accounts.AnyAsync(a => a.Id == accountId);
-                if (!accountExists)
+                if (accountId == 0)
                 {
                     _logger.LogWarning("Account not found: {AccountId}", accountId);
                     continue;
                 }
+
+                // Check if already a member
+                var alreadyMember = team.TeamAccounts.Any(ta => ta.AccountId == accountId);
+                if (alreadyMember)
+                    continue;
 
                 _context.TeamAccounts.Add(
                     new TeamAccount { TeamId = teamId, AccountId = accountId }
@@ -178,12 +175,6 @@ namespace Fair_Share_Backend.Services
                 .Teams.Include(t => t.TeamAccounts)
                 .ThenInclude(ta => ta.Account)
                 .FirstAsync(t => t.Id == teamId);
-
-            _logger.LogInformation(
-                "Added {Count} members to team {TeamId}",
-                request.AccountIds.Count,
-                teamId
-            );
 
             return _mapper.ToDto(team);
         }

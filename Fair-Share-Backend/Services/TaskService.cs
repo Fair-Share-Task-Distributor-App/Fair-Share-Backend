@@ -70,6 +70,17 @@ namespace Fair_Share_Backend.Services
                 : new List<TaskResponseDto>();
         }
 
+        public async Task<List<TaskResponseDto>> GetTasksForAccountAsync(int accountId)
+        {
+            var tasks = await _context
+                .AccountTasks.Where(at => at.AccountId == accountId)
+                .Select(at => at.Task)
+                .Include(t => t.AccountTasks)
+                .ThenInclude(at => at.Account)
+                .ToListAsync();
+            return tasks.Select(t => _mapper.ToDto(t)).ToList();
+        }
+
         public async Task<TaskResponseDto?> UpdateTaskAsync(int id, UpdateTaskRequestDto request)
         {
             var task = await _context.Tasks.FindAsync(id);

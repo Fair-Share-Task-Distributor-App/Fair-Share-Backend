@@ -5,6 +5,6 @@ namespace Fair_Share_Backend.DTOs.Team
     public record AddTeamMembersRequestDto
     {
         [Required]
-        public List<int> AccountIds { get; init; } = new();
+        public List<string> Emails { get; init; } = new();
     }
 }

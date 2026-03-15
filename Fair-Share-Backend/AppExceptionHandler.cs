@@ -1,5 +1,4 @@
 ﻿using System.Data;
-using Fair_Share_Backend.Exceptions;
 using Microsoft.AspNetCore.Diagnostics;
 using static Google.Apis.Requests.BatchRequest;
 

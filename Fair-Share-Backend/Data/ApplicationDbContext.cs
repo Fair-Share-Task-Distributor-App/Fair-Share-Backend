@@ -22,14 +22,17 @@ public partial class ApplicationDbContext : DbContext
 
     public virtual DbSet<TeamAccount> TeamAccounts { get; set; }
 
+    public virtual DbSet<AccountTaskPreference> AccountTaskPreferences { get; set; }
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) =>
-        optionsBuilder.UseNpgsql("Name=ConnectionStrings:DefaultConnection");
+        optionsBuilder.UseNpgsql("Name=ConnectionStrings:LocalConnection");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Account>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("account_pkey");
+            entity.HasIndex(e => e.Email).IsUnique().HasDatabaseName("account_email_key");
         });
 
         modelBuilder.Entity<AccountTask>(entity =>
@@ -88,6 +91,27 @@ public partial class ApplicationDbContext : DbContext
                 .WithMany(t => t.TeamAccounts)
                 .HasForeignKey(e => e.TeamId)
                 .HasConstraintName("team_account_team_id_fkey");
+        });
+
+        modelBuilder.Entity<AccountTaskPreference>(entity =>
+        {
+            entity
+                .HasKey(e => new { e.AccountId, e.TaskId })
+                .HasName("account_task_preference_pkey");
+            entity.ToTable("account_task_preference");
+            entity.Property(e => e.AccountId).HasColumnName("account_id");
+            entity.Property(e => e.TaskId).HasColumnName("task_id");
+            entity.Property(e => e.Score).IsRequired().HasColumnName("score").HasMaxLength(50);
+            entity
+                .HasOne(e => e.Account)
+                .WithMany(a => a.AccountTaskPreferences)
+                .HasForeignKey(e => e.AccountId)
+                .HasConstraintName("account_task_preference_account_id_fkey");
+            entity
+                .HasOne(e => e.Task)
+                .WithMany(t => t.AccountTaskPreferences)
+                .HasForeignKey(e => e.TaskId)
+                .HasConstraintName("account_task_preference_task_id_fkey");
         });
 
         OnModelCreatingPartial(modelBuilder);
