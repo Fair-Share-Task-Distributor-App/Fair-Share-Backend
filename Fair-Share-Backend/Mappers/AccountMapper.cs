@@ -21,7 +21,6 @@ namespace Fair_Share_Backend.Mappers
             return new AuthResponseDto
             {
                 Token = token,
-                AccountId = account.Id,
                 Email = account.Email,
                 Name = account.Name,
                 IsNewUser = isNewUser

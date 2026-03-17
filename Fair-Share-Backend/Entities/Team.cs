@@ -17,7 +17,7 @@ public partial class Team
     public string Name { get; set; } = null!;
 
     [InverseProperty("Team")]
-    public virtual ICollection<TeamAccount> TeamAccounts { get; set; } = new List<TeamAccount>();
+    public virtual ICollection<Account> Accounts { get; set; } = new List<Account>();
 
     [InverseProperty("TeamOwned")]
     public virtual ICollection<Task> Tasks { get; set; } = new List<Task>();

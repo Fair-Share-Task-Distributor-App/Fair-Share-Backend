@@ -56,7 +56,7 @@ namespace Fair_Share_Backend.Controllers
                 return Conflict(new { message = "Account with this email already exists" });
             }
 
-            return CreatedAtAction(nameof(Signup), new { id = result.AccountId }, result);
+            return CreatedAtAction(nameof(Signup), result);
         }
     }
 }

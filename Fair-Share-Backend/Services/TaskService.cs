@@ -70,14 +70,27 @@ namespace Fair_Share_Backend.Services
                 : new List<TaskResponseDto>();
         }
 
+        public async Task<List<TaskResponseDto>> GetUnassignedTasksInTeamAsync(int teamId)
+        {
+            var team = await _context
+                .Teams.Include(t => t.Tasks)
+                .FirstOrDefaultAsync(t => t.Id == teamId);
+
+            var tasks = team?.Tasks.ToList();
+
+            return tasks != null
+                ? tasks.Select(t => _mapper.ToDto(t)).ToList()
+                : new List<TaskResponseDto>();
+        }
+
         public async Task<List<TaskResponseDto>> GetTasksForAccountAsync(int accountId)
         {
             var tasks = await _context
-                .AccountTasks.Where(at => at.AccountId == accountId)
-                .Select(at => at.Task)
+                .Tasks.Where(t => t.AccountTasks.Any(at => at.AccountId == accountId))
                 .Include(t => t.AccountTasks)
                 .ThenInclude(at => at.Account)
                 .ToListAsync();
+
             return tasks.Select(t => _mapper.ToDto(t)).ToList();
         }
 

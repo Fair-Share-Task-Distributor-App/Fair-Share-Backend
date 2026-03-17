@@ -174,7 +174,6 @@ namespace Fair_Share_Backend.Services
             return new AuthResponseDto
             {
                 Token = token,
-                AccountId = account.Id,
                 Email = account.Email,
                 Name = account.Name,
                 IsNewUser = true
@@ -199,9 +198,7 @@ namespace Fair_Share_Backend.Services
             var claims = new[]
             {
                 new Claim(JwtRegisteredClaimNames.Sub, account.Id.ToString()),
-                new Claim(JwtRegisteredClaimNames.Email, account.Email),
-                new Claim(JwtRegisteredClaimNames.Name, account.Name),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+                new Claim("teamId", account.TeamId.ToString())
             };
 
             var token = new JwtSecurityToken(

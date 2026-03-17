@@ -1,15 +1,16 @@
-﻿using Fair_Share_Backend.DTOs.Task;
+﻿using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using Fair_Share_Backend.DTOs.Task;
 using Fair_Share_Backend.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.IdentityModel.Tokens.Jwt;
 
 namespace Fair_Share_Backend.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
     [Authorize]
-    public class TaskController :ControllerBase
+    public class TaskController : ControllerBase
     {
         private readonly TaskService _taskService;
         private readonly ILogger<TaskController> _logger;
@@ -29,10 +30,7 @@ namespace Fair_Share_Backend.Controllers
             }
 
             var result = await _taskService.CreateTaskAsync(request);
-            return CreatedAtAction(nameof(GetTaskById), new
-            {
-                id = result.Id
-            }, result);
+            return CreatedAtAction(nameof(GetTaskById), new { id = result.Id }, result);
         }
 
         [HttpGet("{id}")]
@@ -42,28 +40,25 @@ namespace Fair_Share_Backend.Controllers
 
             if (result == null)
             {
-                return NotFound(new
-                {
-                    message = $"Task with ID {id} not found"
-                });
+                return NotFound(new { message = $"Task with ID {id} not found" });
             }
 
             return Ok(result);
         }
 
-        [HttpGet("team/{teamId}")]
-        public async Task<IActionResult> GetTasksByTeamId(int teamId)
+        [HttpGet("unassignedTasks")]
+        public async Task<IActionResult> GetUnassignedTasksInTeam()
         {
-            var results = await _taskService.GetTasksInTeamAsync(teamId);
+            var teamId = int.Parse(User.FindFirstValue("teamId")!);
+
+            var results = await _taskService.GetUnassignedTasksInTeamAsync(teamId);
             return Ok(results);
         }
 
         [HttpGet("myTasks")]
         public async Task<IActionResult> GetMyTasks()
         {
-            var userId = int.Parse(
-                User.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Sub)!.Value
-            );
+            var userId = int.Parse(User.FindFirstValue(JwtRegisteredClaimNames.Sub)!);
             var results = await _taskService.GetTasksForAccountAsync(userId);
             return Ok(results);
         }
@@ -80,10 +75,7 @@ namespace Fair_Share_Backend.Controllers
 
             if (result == null)
             {
-                return NotFound(new
-                {
-                    message = $"Task with ID {id} not found"
-                });
+                return NotFound(new { message = $"Task with ID {id} not found" });
             }
 
             return Ok(result);
@@ -96,10 +88,7 @@ namespace Fair_Share_Backend.Controllers
 
             if (!success)
             {
-                return NotFound(new
-                {
-                    message = $"Task with ID {id} not found"
-                });
+                return NotFound(new { message = $"Task with ID {id} not found" });
             }
 
             return NoContent();
@@ -117,10 +106,7 @@ namespace Fair_Share_Backend.Controllers
 
             if (result == null)
             {
-                return NotFound(new
-                {
-                    message = $"Task with ID {id} not found"
-                });
+                return NotFound(new { message = $"Task with ID {id} not found" });
             }
 
             return Ok(result);

@@ -35,22 +35,24 @@ namespace Fair_Share_Backend.Services
             {
                 foreach (var accountId in request.MemberIds)
                 {
-                    var accountExists = await _context.Accounts.AnyAsync(a => a.Id == accountId);
-                    if (accountExists)
+                    var account = await _context.Accounts.FirstOrDefaultAsync(a =>
+                        a.Id == accountId
+                    );
+                    if (account != null && account.TeamId == 0)
                     {
-                        _context.TeamAccounts.Add(
-                            new TeamAccount { TeamId = team.Id, AccountId = accountId }
+                        account.TeamId = team.Id;
+                        _context.Accounts.Update(account);
+                    }
+                    else
+                    {
+                        _logger.LogWarning(
+                            "Account not found or already in a team: {AccountId}",
+                            accountId
                         );
                     }
                 }
                 await _context.SaveChangesAsync();
             }
-
-            // Reload with relationships
-            team = await _context
-                .Teams.Include(t => t.TeamAccounts)
-                .ThenInclude(ta => ta.Account)
-                .FirstAsync(t => t.Id == team.Id);
 
             _logger.LogInformation("Team created: {TeamId} - {Name}", team.Id, team.Name);
 
@@ -60,8 +62,7 @@ namespace Fair_Share_Backend.Services
         public async Task<TeamResponseDto?> GetTeamByIdAsync(int id)
         {
             var team = await _context
-                .Teams.Include(t => t.TeamAccounts)
-                .ThenInclude(ta => ta.Account)
+                .Teams.Include(t => t.Accounts)
                 .FirstOrDefaultAsync(t => t.Id == id);
 
             if (team == null)
@@ -76,8 +77,7 @@ namespace Fair_Share_Backend.Services
         public async Task<List<TeamResponseDto>> GetAllTeamsAsync()
         {
             var teams = await _context
-                .Teams.Include(t => t.TeamAccounts)
-                .ThenInclude(ta => ta.Account)
+                .Teams.Include(t => t.Accounts)
                 .ToListAsync();
 
             return _mapper.ToDtoList(teams);
@@ -86,9 +86,8 @@ namespace Fair_Share_Backend.Services
         public async Task<List<TeamResponseDto>> GetTeamsByAccountIdAsync(int accountId)
         {
             var teams = await _context
-                .Teams.Include(t => t.TeamAccounts)
-                .ThenInclude(ta => ta.Account)
-                .Where(t => t.TeamAccounts.Any(ta => ta.AccountId == accountId))
+                .Teams.Include(t => t.Accounts)
+                .Where(t => t.Accounts.Any(a => a.Id == accountId))
                 .ToListAsync();
 
             return _mapper.ToDtoList(teams);
@@ -109,8 +108,7 @@ namespace Fair_Share_Backend.Services
 
             // Reload with relationships
             team = await _context
-                .Teams.Include(t => t.TeamAccounts)
-                .ThenInclude(ta => ta.Account)
+                .Teams.Include(t => t.Accounts)
                 .FirstAsync(t => t.Id == id);
 
             _logger.LogInformation("Team updated: {TeamId}", id);
@@ -142,38 +140,31 @@ namespace Fair_Share_Backend.Services
         )
         {
             var team = await _context
-                .Teams.Include(t => t.TeamAccounts)
+                .Teams.Include(t => t.Accounts)
                 .FirstOrDefaultAsync(t => t.Id == teamId);
 
             foreach (var email in request.Emails)
             {
-                var accountId = _context
-                    .Accounts.Where(a => a.Email == email)
-                    .Select(a => a.Id)
-                    .FirstOrDefault();
+                var account = await _context.Accounts.FirstOrDefaultAsync(a => a.Email == email);
 
-                if (accountId == 0)
+                if (account == null)
                 {
-                    _logger.LogWarning("Account not found: {AccountId}", accountId);
+                    _logger.LogWarning("Account not found: {Email}", email);
                     continue;
                 }
 
-                // Check if already a member
-                var alreadyMember = team.TeamAccounts.Any(ta => ta.AccountId == accountId);
-                if (alreadyMember)
+                // Check if already a member of this team
+                if (account.TeamId == teamId)
                     continue;
 
-                _context.TeamAccounts.Add(
-                    new TeamAccount { TeamId = teamId, AccountId = accountId }
-                );
+                account.TeamId = teamId;
             }
 
             await _context.SaveChangesAsync();
 
             // Reload with updated relationships
             team = await _context
-                .Teams.Include(t => t.TeamAccounts)
-                .ThenInclude(ta => ta.Account)
+                .Teams.Include(t => t.Accounts)
                 .FirstAsync(t => t.Id == teamId);
 
             return _mapper.ToDto(team);
@@ -181,11 +172,11 @@ namespace Fair_Share_Backend.Services
 
         public async Task<TeamResponseDto?> RemoveMemberAsync(int teamId, int accountId)
         {
-            var teamAccount = await _context.TeamAccounts.FirstOrDefaultAsync(ta =>
-                ta.TeamId == teamId && ta.AccountId == accountId
+            var account = await _context.Accounts.FirstOrDefaultAsync(a =>
+                a.TeamId == teamId && a.Id == accountId
             );
 
-            if (teamAccount == null)
+            if (account == null)
             {
                 _logger.LogWarning(
                     "Member not found in team: TeamId={TeamId}, AccountId={AccountId}",
@@ -195,13 +186,12 @@ namespace Fair_Share_Backend.Services
                 return null;
             }
 
-            _context.TeamAccounts.Remove(teamAccount);
+            account.TeamId = 0; // Removing the account from the team by setting to 0 (or default value)
             await _context.SaveChangesAsync();
 
             // Reload team with relationships
             var team = await _context
-                .Teams.Include(t => t.TeamAccounts)
-                .ThenInclude(ta => ta.Account)
+                .Teams.Include(t => t.Accounts)
                 .FirstOrDefaultAsync(t => t.Id == teamId);
 
             if (team == null)

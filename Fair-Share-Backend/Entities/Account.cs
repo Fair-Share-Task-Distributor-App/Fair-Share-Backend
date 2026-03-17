@@ -27,6 +27,9 @@ public partial class Account
     [AllowNull]
     public string? GoogleId { get; set; }
 
+    [Column("team_id")]
+    public int? TeamId { get; set; }
+
     [Column("password_hash")]
     public string PasswordHash { get; set; } = null!;
 
@@ -36,9 +39,10 @@ public partial class Account
     [InverseProperty("Account")]
     public virtual ICollection<AccountTask> AccountTasks { get; set; } = new List<AccountTask>();
 
-    [InverseProperty("Account")]
-    public virtual ICollection<TeamAccount> TeamAccounts { get; set; } = new List<TeamAccount>();
-
     public virtual ICollection<AccountTaskPreference> AccountTaskPreferences { get; set; } =
         new List<AccountTaskPreference>();
+
+    [ForeignKey("TeamId")]
+    [InverseProperty("Accounts")]
+    public virtual Team? Team { get; set; }
 }

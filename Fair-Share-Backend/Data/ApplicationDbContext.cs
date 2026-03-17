@@ -20,12 +20,10 @@ public partial class ApplicationDbContext : DbContext
 
     public virtual DbSet<Team> Teams { get; set; }
 
-    public virtual DbSet<TeamAccount> TeamAccounts { get; set; }
-
     public virtual DbSet<AccountTaskPreference> AccountTaskPreferences { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) =>
-        optionsBuilder.UseNpgsql("Name=ConnectionStrings:LocalConnection");
+        optionsBuilder.UseNpgsql("Name=ConnectionStrings:DefaultConnection");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -33,6 +31,12 @@ public partial class ApplicationDbContext : DbContext
         {
             entity.HasKey(e => e.Id).HasName("account_pkey");
             entity.HasIndex(e => e.Email).IsUnique().HasDatabaseName("account_email_key");
+            entity
+                .HasOne(e => e.Team)
+                .WithMany(t => t.Accounts)
+                .HasForeignKey(e => e.TeamId)
+                .IsRequired(false)
+                .HasConstraintName("account_team_id_fkey");
         });
 
         modelBuilder.Entity<AccountTask>(entity =>
@@ -68,29 +72,6 @@ public partial class ApplicationDbContext : DbContext
         modelBuilder.Entity<Team>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("team_pkey");
-        });
-
-        modelBuilder.Entity<TeamAccount>(entity =>
-        {
-            entity.HasKey(e => new { e.AccountId, e.TeamId }).HasName("team_account_pkey");
-
-            entity.ToTable("team_account");
-
-            entity.Property(e => e.AccountId).HasColumnName("account_id");
-
-            entity.Property(e => e.TeamId).HasColumnName("team_id");
-
-            entity
-                .HasOne(e => e.Account)
-                .WithMany(a => a.TeamAccounts)
-                .HasForeignKey(e => e.AccountId)
-                .HasConstraintName("team_account_account_id_fkey");
-
-            entity
-                .HasOne(e => e.Team)
-                .WithMany(t => t.TeamAccounts)
-                .HasForeignKey(e => e.TeamId)
-                .HasConstraintName("team_account_team_id_fkey");
         });
 
         modelBuilder.Entity<AccountTaskPreference>(entity =>

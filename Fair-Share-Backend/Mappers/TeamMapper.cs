@@ -7,15 +7,13 @@ namespace Fair_Share_Backend.Mappers
     {
         public Entities.Team ToEntity(CreateTeamRequestDto dto)
         {
-            return new Entities.Team
-            {
-                Name = dto.Name
-            };
+            return new Entities.Team { Name = dto.Name };
         }
 
         public void UpdateEntity(Entities.Team team, UpdateTeamRequestDto dto)
         {
-            if (dto.Name != null) team.Name = dto.Name;
+            if (dto.Name != null)
+                team.Name = dto.Name;
         }
 
         public TeamResponseDto ToDto(Entities.Team team)
@@ -24,12 +22,14 @@ namespace Fair_Share_Backend.Mappers
             {
                 Id = team.Id,
                 Name = team.Name,
-                Members = team.TeamAccounts.Select(ta => new TeamMemberDto
-                {
-                    AccountId = ta.AccountId,
-                    Name = ta.Account.Name,
-                    Email = ta.Account.Email
-                }).ToList()
+                Members = team
+                    .Accounts.Select(ta => new TeamMemberDto
+                    {
+                        AccountId = ta.Id,
+                        Name = ta.Name,
+                        Email = ta.Email
+                    })
+                    .ToList()
             };
         }
 
