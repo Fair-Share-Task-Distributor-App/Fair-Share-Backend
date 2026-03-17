@@ -118,7 +118,7 @@ namespace Fair_Share_Backend.Services
         {
             // Find user by email or name
             var account = await _context.Accounts.FirstOrDefaultAsync(a =>
-                a.Email == request.Email || a.Name == request.Name
+                a.Email == request.Email
             );
 
             if (account == null || account.PasswordHash == null)
