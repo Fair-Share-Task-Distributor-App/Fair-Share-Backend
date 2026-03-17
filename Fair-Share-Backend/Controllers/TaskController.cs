@@ -55,6 +55,15 @@ namespace Fair_Share_Backend.Controllers
             return Ok(results);
         }
 
+        [HttpGet("allTasks")]
+        public async Task<IActionResult> GetAllTasksInTeam()
+        {
+            var teamId = int.Parse(User.FindFirstValue("teamId")!);
+
+            var results = await _taskService.GetTasksInTeamAsync(teamId);
+            return Ok(results);
+        }
+
         [HttpGet("myTasks")]
         public async Task<IActionResult> GetMyTasks()
         {

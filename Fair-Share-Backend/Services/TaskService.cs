@@ -61,6 +61,8 @@ namespace Fair_Share_Backend.Services
         {
             var team = await _context
                 .Teams.Include(t => t.Tasks)
+                .ThenInclude(t => t.AccountTasks)
+                .ThenInclude(at => at.Account)
                 .FirstOrDefaultAsync(t => t.Id == teamId);
 
             var tasks = team?.Tasks.ToList();
@@ -74,12 +76,16 @@ namespace Fair_Share_Backend.Services
         {
             var team = await _context
                 .Teams.Include(t => t.Tasks)
+                .ThenInclude(t => t.AccountTasks)
+                .ThenInclude(at => at.Account)
                 .FirstOrDefaultAsync(t => t.Id == teamId);
 
-            var tasks = team?.Tasks.ToList();
+            var unassignedTasks = team
+                ?.Tasks.Where(t => t.AccountTasks == null || !t.AccountTasks.Any())
+                .ToList();
 
-            return tasks != null
-                ? tasks.Select(t => _mapper.ToDto(t)).ToList()
+            return unassignedTasks != null
+                ? unassignedTasks.Select(t => _mapper.ToDto(t)).ToList()
                 : new List<TaskResponseDto>();
         }
 
