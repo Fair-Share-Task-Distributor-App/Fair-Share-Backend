@@ -49,9 +49,10 @@ namespace Fair_Share_Backend.Controllers
         [HttpGet("unassignedTasks")]
         public async Task<IActionResult> GetUnassignedTasksInTeam()
         {
+            var accountId = int.Parse(User.FindFirstValue(JwtRegisteredClaimNames.Sub)!);
             var teamId = int.Parse(User.FindFirstValue("teamId")!);
 
-            var results = await _taskService.GetUnassignedTasksInTeamAsync(teamId);
+            var results = await _taskService.GetUnassignedTasksInTeamAsync(accountId, teamId);
             return Ok(results);
         }
 

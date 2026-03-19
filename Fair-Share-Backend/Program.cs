@@ -26,11 +26,13 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<TaskService>();
 builder.Services.AddScoped<TeamService>();
+builder.Services.AddScoped<TaskPreferenceService>();
 
 // Register Mappers
 builder.Services.AddScoped<AccountMapper>();
 builder.Services.AddScoped<TaskMapper>();
 builder.Services.AddScoped<TeamMapper>();
+builder.Services.AddScoped<TaskPreferenceMapper>();
 
 // Configure JWT Authentication
 builder

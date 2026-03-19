@@ -9,6 +9,8 @@ namespace Fair_Share_Backend.DTOs.Task
         public DateTime AutoAssignAt { get; init; }
         public bool IsCompleted { get; init; }
         public int Points { get; init; }
+
+        public int? UserPreferenceRating { get; set; }
         public List<AssignedAccountDto> AssignedAccounts { get; init; } = new();
     }
 

@@ -45,6 +45,7 @@ namespace Fair_Share_Backend.Mappers
                 AutoAssignAt = task.AutoAssignAt,
                 IsCompleted = task.IsCompleted,
                 Points = task.Points,
+                UserPreferenceRating = task.AccountTaskPreferences?.FirstOrDefault()?.Score,
                 AssignedAccounts = task
                     .AccountTasks.Select(at => new AssignedAccountDto
                     {

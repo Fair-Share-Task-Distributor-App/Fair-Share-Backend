@@ -72,21 +72,33 @@ namespace Fair_Share_Backend.Services
                 : new List<TaskResponseDto>();
         }
 
-        public async Task<List<TaskResponseDto>> GetUnassignedTasksInTeamAsync(int teamId)
+        public async Task<List<TaskResponseDto>> GetUnassignedTasksInTeamAsync(
+            int accountId,
+            int teamId
+        )
         {
             var team = await _context
                 .Teams.Include(t => t.Tasks)
                 .ThenInclude(t => t.AccountTasks)
                 .ThenInclude(at => at.Account)
+                .Include(t => t.Tasks)
+                .ThenInclude(t => t.AccountTaskPreferences.Where(p => p.AccountId == accountId))
                 .FirstOrDefaultAsync(t => t.Id == teamId);
 
-            var unassignedTasks = team
-                ?.Tasks.Where(t => t.AccountTasks == null || !t.AccountTasks.Any())
-                .ToList();
+            var unassignedTasks = team?.Tasks.Where(t => t.AccountTasks.Count == 0).ToList();
 
-            return unassignedTasks != null
-                ? unassignedTasks.Select(t => _mapper.ToDto(t)).ToList()
-                : new List<TaskResponseDto>();
+            var unassignedTasksDtos =
+                unassignedTasks != null
+                    ? unassignedTasks.Select(t => _mapper.ToDto(t)).ToList()
+                    : new List<TaskResponseDto>();
+
+            // set it to 5 if no preference exists
+            foreach (var dto in unassignedTasksDtos)
+            {
+                dto.UserPreferenceRating = dto.UserPreferenceRating ?? 5;
+            }
+
+            return unassignedTasksDtos;
         }
 
         public async Task<List<TaskResponseDto>> GetTasksForAccountAsync(int accountId)
