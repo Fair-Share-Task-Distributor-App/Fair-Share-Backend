@@ -63,8 +63,6 @@ namespace Fair_Share_Backend.Services
                     a.GoogleId == payload.Subject || a.Email == payload.Email
                 );
 
-                bool isNewUser = false;
-
                 if (account == null)
                 {
                     // Create new user
@@ -77,7 +75,6 @@ namespace Fair_Share_Backend.Services
 
                     _context.Accounts.Add(account);
                     await _context.SaveChangesAsync();
-                    isNewUser = true;
 
                     _logger.LogInformation(
                         "New user created via Google OAuth: {Email}",
@@ -95,6 +92,8 @@ namespace Fair_Share_Backend.Services
                         account.Email
                     );
                 }
+
+                var isNewUser = checkIfNotInTeam(account);
 
                 // Generate JWT
                 var token = GenerateJwtToken(account);
@@ -134,12 +133,14 @@ namespace Fair_Share_Backend.Services
                 return null;
             }
 
+            var isNewUser = checkIfNotInTeam(account);
+
             // Generate JWT
             var token = GenerateJwtToken(account);
 
             _logger.LogInformation("User logged in successfully: {Email}", account.Email);
 
-            var response = _accountMapper.ToAuthResponseDto(account, token, false);
+            var response = _accountMapper.ToAuthResponseDto(account, token, isNewUser);
 
             return response;
         }
@@ -210,6 +211,11 @@ namespace Fair_Share_Backend.Services
             );
 
             return new JwtSecurityTokenHandler().WriteToken(token);
+        }
+
+        private bool checkIfNotInTeam(Account account)
+        {
+            return account.TeamId == null;
         }
     }
 }
