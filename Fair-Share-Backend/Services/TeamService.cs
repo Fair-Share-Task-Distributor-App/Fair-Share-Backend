@@ -23,36 +23,22 @@ namespace Fair_Share_Backend.Services
             _logger = logger;
         }
 
-        public async Task<TeamResponseDto> CreateTeamAsync(CreateTeamRequestDto request)
+        public async Task<TeamResponseDto> CreateTeamAsync(
+            CreateTeamRequestDto request,
+            int teamOwnerId
+        )
         {
+            var account = await _context.Accounts.FirstOrDefaultAsync(a => a.Id == teamOwnerId);
+
+            if (account == null)
+                throw new Exception("User not found");
+
             var team = _mapper.ToEntity(request);
 
             _context.Teams.Add(team);
-            await _context.SaveChangesAsync();
+            account.Team = team;
 
-            // Add members if provided
-            if (request.MemberIds != null && request.MemberIds.Count > 0)
-            {
-                foreach (var accountId in request.MemberIds)
-                {
-                    var account = await _context.Accounts.FirstOrDefaultAsync(a =>
-                        a.Id == accountId
-                    );
-                    if (account != null && account.TeamId == 0)
-                    {
-                        account.TeamId = team.Id;
-                        _context.Accounts.Update(account);
-                    }
-                    else
-                    {
-                        _logger.LogWarning(
-                            "Account not found or already in a team: {AccountId}",
-                            accountId
-                        );
-                    }
-                }
-                await _context.SaveChangesAsync();
-            }
+            await _context.SaveChangesAsync();
 
             _logger.LogInformation("Team created: {TeamId} - {Name}", team.Id, team.Name);
 
@@ -76,9 +62,7 @@ namespace Fair_Share_Backend.Services
 
         public async Task<List<TeamResponseDto>> GetAllTeamsAsync()
         {
-            var teams = await _context
-                .Teams.Include(t => t.Accounts)
-                .ToListAsync();
+            var teams = await _context.Teams.Include(t => t.Accounts).ToListAsync();
 
             return _mapper.ToDtoList(teams);
         }
@@ -107,9 +91,7 @@ namespace Fair_Share_Backend.Services
             await _context.SaveChangesAsync();
 
             // Reload with relationships
-            team = await _context
-                .Teams.Include(t => t.Accounts)
-                .FirstAsync(t => t.Id == id);
+            team = await _context.Teams.Include(t => t.Accounts).FirstAsync(t => t.Id == id);
 
             _logger.LogInformation("Team updated: {TeamId}", id);
 
@@ -163,9 +145,7 @@ namespace Fair_Share_Backend.Services
             await _context.SaveChangesAsync();
 
             // Reload with updated relationships
-            team = await _context
-                .Teams.Include(t => t.Accounts)
-                .FirstAsync(t => t.Id == teamId);
+            team = await _context.Teams.Include(t => t.Accounts).FirstAsync(t => t.Id == teamId);
 
             return _mapper.ToDto(team);
         }

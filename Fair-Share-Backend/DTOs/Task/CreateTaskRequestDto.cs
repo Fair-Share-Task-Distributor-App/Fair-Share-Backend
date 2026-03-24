@@ -21,6 +21,6 @@ namespace Fair_Share_Backend.DTOs.Task
         [Range(1, 100)]
         public int Points { get; init; }
 
-        public int? TeamId { get; init; }
+        public int TeamId { get; set; }
     }
 }

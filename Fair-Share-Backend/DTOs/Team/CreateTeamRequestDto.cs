@@ -7,7 +7,5 @@ namespace Fair_Share_Backend.DTOs.Team
         [Required]
         [MaxLength(200)]
         public string Name { get; init; } = null!;
-
-        public List<int>? MemberIds { get; init; }
     }
 }

@@ -14,7 +14,8 @@ namespace Fair_Share_Backend.Mappers
                 DueAt = dto.DueAt,
                 AutoAssignAt = dto.AutoAssignAt,
                 Points = dto.Points,
-                IsCompleted = false
+                IsCompleted = false,
+                TeamOwnedId = dto.TeamId
             };
         }
 

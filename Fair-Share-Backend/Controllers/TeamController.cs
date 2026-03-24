@@ -1,16 +1,17 @@
-﻿using Fair_Share_Backend.DTOs.Team;
+﻿using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using Fair_Share_Backend.DTOs.Team;
 using Fair_Share_Backend.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc;
-using System.IdentityModel.Tokens.Jwt;
 
 namespace Fair_Share_Backend.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
     [Authorize]
-    public class TeamController :ControllerBase
+    public class TeamController : ControllerBase
     {
         private readonly TeamService _teamService;
         private readonly ILogger<TeamController> _logger;
@@ -24,11 +25,9 @@ namespace Fair_Share_Backend.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateTeam([FromBody] CreateTeamRequestDto request)
         {
-            var result = await _teamService.CreateTeamAsync(request);
-            return CreatedAtAction(nameof(GetTeamById), new
-            {
-                id = result.Id
-            }, result);
+            var accountId = int.Parse(User.FindFirstValue(JwtRegisteredClaimNames.Sub)!);
+            var result = await _teamService.CreateTeamAsync(request, accountId);
+            return CreatedAtAction(nameof(GetTeamById), new { id = result.Id }, result);
         }
 
         [HttpGet("{id}")]
@@ -38,78 +37,53 @@ namespace Fair_Share_Backend.Controllers
 
             if (result == null)
             {
-                return NotFound(new
-                {
-                    message = $"Team with ID {id} not found"
-                });
+                return NotFound(new { message = $"Team with ID {id} not found" });
             }
 
             return Ok(result);
         }
 
-        [HttpGet]
-        public async Task<IActionResult> GetAllTeams()
-        {
-            var results = await _teamService.GetAllTeamsAsync();
-            return Ok(results);
-        }
+        //[HttpPut("{id}")]
+        //public async Task<IActionResult> UpdateTeam(int id, [FromBody] UpdateTeamRequestDto request)
+        //{
+        //    var result = await _teamService.UpdateTeamAsync(id, request);
 
-        [HttpGet("myTeams")]
-        public async Task<IActionResult> GetTeamsByAccountId()
-        {
-            var accountId = int.Parse(
-                User.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Sub)!.Value
-            );
-            var results = await _teamService.GetTeamsByAccountIdAsync(accountId);
-            return Ok(results);
-        }
+        //    if (result == null)
+        //    {
+        //        return NotFound(new
+        //        {
+        //            message = $"Team with ID {id} not found"
+        //        });
+        //    }
 
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateTeam(int id, [FromBody] UpdateTeamRequestDto request)
+        //    return Ok(result);
+        //}
+
+        //[HttpDelete("{id}")]
+        //public async Task<IActionResult> DeleteTeam(int id)
+        //{
+        //    var success = await _teamService.DeleteTeamAsync(id);
+
+        //    if (!success)
+        //    {
+        //        return NotFound(new
+        //        {
+        //            message = $"Team with ID {id} not found"
+        //        });
+        //    }
+
+        //    return NoContent();
+        //}
+
+        [HttpPost("addMembers")]
+        public async Task<IActionResult> AddMembers([FromBody] AddTeamMembersRequestDto request)
         {
-            var result = await _teamService.UpdateTeamAsync(id, request);
+            var teamId = int.Parse(User.FindFirstValue("teamId")!);
+            var result = await _teamService.AddMembersAsync(teamId, request);
 
             if (result == null)
             {
-                return NotFound(new
-                {
-                    message = $"Team with ID {id} not found"
-                });
-            }
-
-            return Ok(result);
-        }
-
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteTeam(int id)
-        {
-            var success = await _teamService.DeleteTeamAsync(id);
-
-            if (!success)
-            {
-                return NotFound(new
-                {
-                    message = $"Team with ID {id} not found"
-                });
-            }
-
-            return NoContent();
-        }
-
-        [HttpPost("{id}/members")]
-        public async Task<IActionResult> AddMembers(
-            int id,
-            [FromBody] AddTeamMembersRequestDto request
-        )
-        {
-            var result = await _teamService.AddMembersAsync(id, request);
-
-            if (result == null)
-            {
-                return NotFound(new
-                {
-                    message = $"Team with ID {id} not found"
-                });
+                return NotFound(new { message = $"Team with ID {teamId} not found" });
             }
 
             return Ok(result);

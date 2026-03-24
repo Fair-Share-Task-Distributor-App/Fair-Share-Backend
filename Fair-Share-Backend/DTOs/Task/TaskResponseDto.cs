@@ -11,7 +11,7 @@ namespace Fair_Share_Backend.DTOs.Task
         public int Points { get; init; }
 
         public int? UserPreferenceRating { get; set; }
-        public List<AssignedAccountDto> AssignedAccounts { get; init; } = new();
+        public List<AssignedAccountDto>? AssignedAccounts { get; init; }
     }
 
     public record AssignedAccountDto

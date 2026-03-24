@@ -24,10 +24,8 @@ namespace Fair_Share_Backend.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateTask([FromBody] CreateTaskRequestDto request)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+            var teamId = int.Parse(User.FindFirstValue("teamId")!);
+            request.TeamId = teamId;
 
             var result = await _taskService.CreateTaskAsync(request);
             return CreatedAtAction(nameof(GetTaskById), new { id = result.Id }, result);
