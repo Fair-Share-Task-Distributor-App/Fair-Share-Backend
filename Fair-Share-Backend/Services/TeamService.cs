@@ -139,6 +139,17 @@ namespace Fair_Share_Backend.Services
                 if (account.TeamId == teamId)
                     continue;
 
+                // Check if already a member of another team
+                if (account.TeamId != null)
+                {
+                    _logger.LogWarning(
+                        "Account {Email} is already a member of another team (TeamId={ExistingTeamId})",
+                        email,
+                        account.TeamId
+                    );
+                    continue;
+                }
+
                 account.TeamId = teamId;
             }
 

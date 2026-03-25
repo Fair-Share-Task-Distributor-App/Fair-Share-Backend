@@ -59,9 +59,11 @@ namespace Fair_Share_Backend.Services
                 );
 
                 // Check if user exists
-                var account = await _context.Accounts.FirstOrDefaultAsync(a =>
-                    a.GoogleId == payload.Subject || a.Email == payload.Email
-                );
+                var account = await _context
+                    .Accounts.Include(a => a.Team)
+                    .FirstOrDefaultAsync(a =>
+                        a.GoogleId == payload.Subject || a.Email == payload.Email
+                    );
 
                 if (account == null)
                 {
@@ -116,9 +118,9 @@ namespace Fair_Share_Backend.Services
         public async Task<AuthResponseDto?> LoginAsync(LoginRequestDto request)
         {
             // Find user by email or name
-            var account = await _context.Accounts.FirstOrDefaultAsync(a =>
-                a.Email == request.Email
-            );
+            var account = await _context
+                .Accounts.Include(a => a.Team)
+                .FirstOrDefaultAsync(a => a.Email == request.Email);
 
             if (account == null || account.PasswordHash == null)
             {

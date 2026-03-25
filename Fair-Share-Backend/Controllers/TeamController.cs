@@ -4,7 +4,6 @@ using Fair_Share_Backend.DTOs.Team;
 using Fair_Share_Backend.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc;
 
 namespace Fair_Share_Backend.Controllers
 {

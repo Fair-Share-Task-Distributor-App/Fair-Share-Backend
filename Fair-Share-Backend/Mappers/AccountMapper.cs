@@ -23,7 +23,8 @@ namespace Fair_Share_Backend.Mappers
                 Token = token,
                 Email = account.Email,
                 Name = account.Name,
-                IsNewUser = isNewUser
+                IsNewUser = isNewUser,
+                teamName = account.Team != null ? account.Team.Name : null
             };
         }
     }

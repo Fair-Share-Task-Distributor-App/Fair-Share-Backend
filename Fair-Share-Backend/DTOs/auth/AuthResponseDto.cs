@@ -8,5 +8,6 @@ namespace Fair_Share_Backend.DTOs.Auth
         public string Email { get; set; } = null!;
         public string Name { get; set; } = null!;
         public bool IsNewUser { get; set; }
+        public string? teamName { get; set; }
     }
 }
