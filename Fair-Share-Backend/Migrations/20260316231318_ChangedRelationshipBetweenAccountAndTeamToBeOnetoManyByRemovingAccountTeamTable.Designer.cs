@@ -3,6 +3,7 @@ using System;
 using Fair_Share_Backend.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Fair_Share_Backend.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260316231318_ChangedRelationshipBetweenAccountAndTeamToBeOnetoManyByRemovingAccountTeamTable")]
+    partial class ChangedRelationshipBetweenAccountAndTeamToBeOnetoManyByRemovingAccountTeamTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -59,7 +62,7 @@ namespace Fair_Share_Backend.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("points");
 
-                    b.Property<int?>("TeamId")
+                    b.Property<int>("TeamId")
                         .HasColumnType("integer")
                         .HasColumnName("team_id");
 
@@ -193,6 +196,8 @@ namespace Fair_Share_Backend.Migrations
                     b.HasOne("Fair_Share_Backend.Entities.Team", "Team")
                         .WithMany("Accounts")
                         .HasForeignKey("TeamId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
                         .HasConstraintName("account_team_id_fkey");
 
                     b.Navigation("Team");

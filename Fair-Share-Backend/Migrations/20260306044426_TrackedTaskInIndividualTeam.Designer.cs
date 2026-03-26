@@ -3,6 +3,7 @@ using System;
 using Fair_Share_Backend.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Fair_Share_Backend.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260306044426_TrackedTaskInIndividualTeam")]
+    partial class TrackedTaskInIndividualTeam
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -59,18 +62,8 @@ namespace Fair_Share_Backend.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("points");
 
-                    b.Property<int?>("TeamId")
-                        .HasColumnType("integer")
-                        .HasColumnName("team_id");
-
                     b.HasKey("Id")
                         .HasName("account_pkey");
-
-                    b.HasIndex("Email")
-                        .IsUnique()
-                        .HasDatabaseName("account_email_key");
-
-                    b.HasIndex("TeamId");
 
                     b.ToTable("account");
                 });
@@ -108,16 +101,14 @@ namespace Fair_Share_Backend.Migrations
                         .HasColumnName("task_id");
 
                     b.Property<int>("Score")
-                        .HasMaxLength(50)
                         .HasColumnType("integer")
                         .HasColumnName("score");
 
-                    b.HasKey("AccountId", "TaskId")
-                        .HasName("account_task_preference_pkey");
+                    b.HasKey("AccountId", "TaskId");
 
                     b.HasIndex("TaskId");
 
-                    b.ToTable("account_task_preference", (string)null);
+                    b.ToTable("account_task_preference");
                 });
 
             modelBuilder.Entity("Fair_Share_Backend.Entities.Task", b =>
@@ -188,14 +179,22 @@ namespace Fair_Share_Backend.Migrations
                     b.ToTable("team");
                 });
 
-            modelBuilder.Entity("Fair_Share_Backend.Entities.Account", b =>
+            modelBuilder.Entity("TeamAccount", b =>
                 {
-                    b.HasOne("Fair_Share_Backend.Entities.Team", "Team")
-                        .WithMany("Accounts")
-                        .HasForeignKey("TeamId")
-                        .HasConstraintName("account_team_id_fkey");
+                    b.Property<int>("AccountId")
+                        .HasColumnType("integer")
+                        .HasColumnName("account_id");
 
-                    b.Navigation("Team");
+                    b.Property<int>("TeamId")
+                        .HasColumnType("integer")
+                        .HasColumnName("team_id");
+
+                    b.HasKey("AccountId", "TeamId")
+                        .HasName("team_account_pkey");
+
+                    b.HasIndex("TeamId");
+
+                    b.ToTable("team_account", (string)null);
                 });
 
             modelBuilder.Entity("Fair_Share_Backend.Entities.AccountTask", b =>
@@ -225,15 +224,13 @@ namespace Fair_Share_Backend.Migrations
                         .WithMany("AccountTaskPreferences")
                         .HasForeignKey("AccountId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("account_task_preference_account_id_fkey");
+                        .IsRequired();
 
                     b.HasOne("Fair_Share_Backend.Entities.Task", "Task")
                         .WithMany("AccountTaskPreferences")
                         .HasForeignKey("TaskId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("account_task_preference_task_id_fkey");
+                        .IsRequired();
 
                     b.Navigation("Account");
 
@@ -252,11 +249,34 @@ namespace Fair_Share_Backend.Migrations
                     b.Navigation("TeamOwned");
                 });
 
+            modelBuilder.Entity("TeamAccount", b =>
+                {
+                    b.HasOne("Fair_Share_Backend.Entities.Account", "Account")
+                        .WithMany("TeamAccounts")
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("team_account_account_id_fkey");
+
+                    b.HasOne("Fair_Share_Backend.Entities.Team", "Team")
+                        .WithMany("TeamAccounts")
+                        .HasForeignKey("TeamId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("team_account_team_id_fkey");
+
+                    b.Navigation("Account");
+
+                    b.Navigation("Team");
+                });
+
             modelBuilder.Entity("Fair_Share_Backend.Entities.Account", b =>
                 {
                     b.Navigation("AccountTaskPreferences");
 
                     b.Navigation("AccountTasks");
+
+                    b.Navigation("TeamAccounts");
                 });
 
             modelBuilder.Entity("Fair_Share_Backend.Entities.Task", b =>
@@ -268,9 +288,9 @@ namespace Fair_Share_Backend.Migrations
 
             modelBuilder.Entity("Fair_Share_Backend.Entities.Team", b =>
                 {
-                    b.Navigation("Accounts");
-
                     b.Navigation("Tasks");
+
+                    b.Navigation("TeamAccounts");
                 });
 #pragma warning restore 612, 618
         }
