@@ -98,7 +98,16 @@ namespace Fair_Share_Backend.Services
                 var isNewUser = checkIfNotInTeam(account);
 
                 // Generate JWT
-                var token = GenerateJwtToken(account);
+                var jwtKey =
+                    _configuration["Jwt:Key"]
+                    ?? throw new InvalidOperationException("JWT Key not configured");
+                var jwtIssuer =
+                    _configuration["Jwt:Issuer"]
+                    ?? throw new InvalidOperationException("JWT Issuer not configured");
+                var jwtAudience =
+                    _configuration["Jwt:Audience"]
+                    ?? throw new InvalidOperationException("JWT Audience not configured");
+                var token = JwtGenerator.GenerateJwtToken(account, jwtKey, jwtIssuer, jwtAudience);
                 var response = _accountMapper.ToAuthResponseDto(account, token, isNewUser);
 
                 return response;
@@ -138,7 +147,16 @@ namespace Fair_Share_Backend.Services
             var isNewUser = checkIfNotInTeam(account);
 
             // Generate JWT
-            var token = GenerateJwtToken(account);
+            var jwtKey =
+                _configuration["Jwt:Key"]
+                ?? throw new InvalidOperationException("JWT Key not configured");
+            var jwtIssuer =
+                _configuration["Jwt:Issuer"]
+                ?? throw new InvalidOperationException("JWT Issuer not configured");
+            var jwtAudience =
+                _configuration["Jwt:Audience"]
+                ?? throw new InvalidOperationException("JWT Audience not configured");
+            var token = JwtGenerator.GenerateJwtToken(account, jwtKey, jwtIssuer, jwtAudience);
 
             _logger.LogInformation("User logged in successfully: {Email}", account.Email);
 
@@ -170,7 +188,16 @@ namespace Fair_Share_Backend.Services
             await _context.SaveChangesAsync();
 
             // Generate JWT
-            var token = GenerateJwtToken(account);
+            var jwtKey =
+                _configuration["Jwt:Key"]
+                ?? throw new InvalidOperationException("JWT Key not configured");
+            var jwtIssuer =
+                _configuration["Jwt:Issuer"]
+                ?? throw new InvalidOperationException("JWT Issuer not configured");
+            var jwtAudience =
+                _configuration["Jwt:Audience"]
+                ?? throw new InvalidOperationException("JWT Audience not configured");
+            var token = JwtGenerator.GenerateJwtToken(account, jwtKey, jwtIssuer, jwtAudience);
 
             _logger.LogInformation("New user signed up: {Email}", account.Email);
 
@@ -181,38 +208,6 @@ namespace Fair_Share_Backend.Services
                 Name = account.Name,
                 IsNewUser = true
             };
-        }
-
-        private string GenerateJwtToken(Account account)
-        {
-            var jwtKey =
-                _configuration["Jwt:Key"]
-                ?? throw new InvalidOperationException("JWT Key not configured");
-            var jwtIssuer =
-                _configuration["Jwt:Issuer"]
-                ?? throw new InvalidOperationException("JWT Issuer not configured");
-            var jwtAudience =
-                _configuration["Jwt:Audience"]
-                ?? throw new InvalidOperationException("JWT Audience not configured");
-
-            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
-            var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
-
-            var claims = new[]
-            {
-                new Claim(JwtRegisteredClaimNames.Sub, account.Id.ToString()),
-                new Claim("teamId", account.TeamId.ToString())
-            };
-
-            var token = new JwtSecurityToken(
-                issuer: jwtIssuer,
-                audience: jwtAudience,
-                claims: claims,
-                expires: DateTime.UtcNow.AddDays(7),
-                signingCredentials: credentials
-            );
-
-            return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
         private bool checkIfNotInTeam(Account account)

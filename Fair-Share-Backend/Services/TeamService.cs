@@ -11,19 +11,22 @@ namespace Fair_Share_Backend.Services
         private readonly ApplicationDbContext _context;
         private readonly TeamMapper _mapper;
         private readonly ILogger<TeamService> _logger;
+        private readonly IConfiguration _configuration;
 
         public TeamService(
             ApplicationDbContext context,
             TeamMapper mapper,
-            ILogger<TeamService> logger
+            ILogger<TeamService> logger,
+            IConfiguration configuration
         )
         {
             _context = context;
             _mapper = mapper;
             _logger = logger;
+            _configuration = configuration;
         }
 
-        public async Task<TeamResponseDto> CreateTeamAsync(
+        public async Task<CreateTeamResult> CreateTeamAsync(
             CreateTeamRequestDto request,
             int teamOwnerId
         )
@@ -42,7 +45,21 @@ namespace Fair_Share_Backend.Services
 
             _logger.LogInformation("Team created: {TeamId} - {Name}", team.Id, team.Name);
 
-            return _mapper.ToDto(team);
+            _mapper.ToDto(team);
+
+            // Update JWT
+            var jwtKey =
+                _configuration["Jwt:Key"]
+                ?? throw new InvalidOperationException("JWT Key not configured");
+            var jwtIssuer =
+                _configuration["Jwt:Issuer"]
+                ?? throw new InvalidOperationException("JWT Issuer not configured");
+            var jwtAudience =
+                _configuration["Jwt:Audience"]
+                ?? throw new InvalidOperationException("JWT Audience not configured");
+            var token = JwtGenerator.GenerateJwtToken(account, jwtKey, jwtIssuer, jwtAudience);
+
+            return new CreateTeamResult { Team = _mapper.ToDto(team), Jwt = token };
         }
 
         public async Task<TeamResponseDto?> GetTeamByIdAsync(int id)
@@ -116,7 +133,7 @@ namespace Fair_Share_Backend.Services
             return true;
         }
 
-        public async Task<TeamResponseDto?> AddMembersAsync(
+        public async Task<List<TeamMemberDto>> AddMembersAsync(
             int teamId,
             AddTeamMembersRequestDto request
         )
@@ -124,6 +141,11 @@ namespace Fair_Share_Backend.Services
             var team = await _context
                 .Teams.Include(t => t.Accounts)
                 .FirstOrDefaultAsync(t => t.Id == teamId);
+
+            if (team == null)
+                return new List<TeamMemberDto>();
+
+            var addedMembers = new List<TeamMemberDto>();
 
             foreach (var email in request.Emails)
             {
@@ -151,14 +173,19 @@ namespace Fair_Share_Backend.Services
                 }
 
                 account.TeamId = teamId;
+                addedMembers.Add(
+                    new TeamMemberDto
+                    {
+                        AccountId = account.Id,
+                        Name = account.Name,
+                        Email = account.Email
+                    }
+                );
             }
 
             await _context.SaveChangesAsync();
 
-            // Reload with updated relationships
-            team = await _context.Teams.Include(t => t.Accounts).FirstAsync(t => t.Id == teamId);
-
-            return _mapper.ToDto(team);
+            return addedMembers;
         }
 
         public async Task<TeamResponseDto?> RemoveMemberAsync(int teamId, int accountId)
@@ -177,7 +204,14 @@ namespace Fair_Share_Backend.Services
                 return null;
             }
 
-            account.TeamId = 0; // Removing the account from the team by setting to 0 (or default value)
+            account.TeamId = null; // Removing the account from the team by setting to null
+
+            // Remove all task assignments for this user
+            var accountTasks = await _context
+                .AccountTasks.Where(at => at.AccountId == accountId)
+                .ToListAsync();
+            _context.AccountTasks.RemoveRange(accountTasks);
+
             await _context.SaveChangesAsync();
 
             // Reload team with relationships

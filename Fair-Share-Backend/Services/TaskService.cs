@@ -112,9 +112,9 @@ namespace Fair_Share_Backend.Services
             return tasks.Select(t => _mapper.ToDto(t)).ToList();
         }
 
-        public async Task<TaskResponseDto?> UpdateTaskAsync(int id, UpdateTaskRequestDto request)
+        public async Task<TaskResponseDto?> UpdateTaskAsync(int id, int teamId, UpdateTaskRequestDto request)
         {
-            var task = await _context.Tasks.FindAsync(id);
+            var task = await _context.Tasks.FirstOrDefaultAsync(t => t.Id == id && t.TeamOwnedId == teamId);
 
             if (task == null)
             {
@@ -136,9 +136,9 @@ namespace Fair_Share_Backend.Services
             return _mapper.ToDto(task);
         }
 
-        public async Task<bool> DeleteTaskAsync(int id)
+        public async Task<bool> DeleteTaskAsync(int id, int teamId)
         {
-            var task = await _context.Tasks.FindAsync(id);
+            var task = await _context.Tasks.FirstOrDefaultAsync(t => t.Id == id && t.TeamOwnedId == teamId);
 
             if (task == null)
             {

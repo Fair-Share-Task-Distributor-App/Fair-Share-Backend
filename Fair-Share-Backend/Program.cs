@@ -27,6 +27,7 @@ builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<TaskService>();
 builder.Services.AddScoped<TeamService>();
 builder.Services.AddScoped<TaskPreferenceService>();
+builder.Services.AddScoped<AccountService>();
 
 // Register Mappers
 builder.Services.AddScoped<AccountMapper>();
