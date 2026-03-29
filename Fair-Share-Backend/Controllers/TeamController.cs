@@ -29,16 +29,11 @@ namespace Fair_Share_Backend.Controllers
             return CreatedAtAction(nameof(GetTeamById), new { id = result.Id }, result);
         }
 
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetTeamById(int id)
+        [HttpGet("myteam")]
+        public async Task<IActionResult> GetTeamById()
         {
-            var result = await _teamService.GetTeamByIdAsync(id);
-
-            if (result == null)
-            {
-                return NotFound(new { message = $"Team with ID {id} not found" });
-            }
-
+            var teamId = int.Parse(User.FindFirstValue("teamId")!);
+            var result = await _teamService.GetTeamByIdAsync(teamId);
             return Ok(result);
         }
 
@@ -80,11 +75,34 @@ namespace Fair_Share_Backend.Controllers
             var teamId = int.Parse(User.FindFirstValue("teamId")!);
             var result = await _teamService.AddMembersAsync(teamId, request);
 
-            if (result == null)
+            if (result == null || !result.Any())
             {
-                return NotFound(new { message = $"Team with ID {teamId} not found" });
+                return NotFound(
+                    new
+                    {
+                        message = $"Something went wrong trying to add new member with that email. Email might not be registered or already in existing team."
+                    }
+                );
             }
 
+            return Ok(result);
+        }
+
+        [HttpPost("leave")]
+        public async Task<IActionResult> LeaveTeam()
+        {
+            var teamId = int.Parse(User.FindFirstValue("teamId")!);
+            var accountId = int.Parse(User.FindFirstValue(JwtRegisteredClaimNames.Sub)!);
+            var result = await _teamService.RemoveMemberAsync(teamId, accountId);
+            if (result == null)
+            {
+                return NotFound(
+                    new
+                    {
+                        message = $"Something went wrong trying to leave team. Maybe you are not in a team?"
+                    }
+                );
+            }
             return Ok(result);
         }
 

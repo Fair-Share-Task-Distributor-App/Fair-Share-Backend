@@ -74,12 +74,9 @@ namespace Fair_Share_Backend.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateTask(int id, [FromBody] UpdateTaskRequestDto request)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+            var teamId = int.Parse(User.FindFirstValue("teamId")!);
 
-            var result = await _taskService.UpdateTaskAsync(id, request);
+            var result = await _taskService.UpdateTaskAsync(id, teamId, request);
 
             if (result == null)
             {
@@ -92,7 +89,8 @@ namespace Fair_Share_Backend.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteTask(int id)
         {
-            var success = await _taskService.DeleteTaskAsync(id);
+            var teamId = int.Parse(User.FindFirstValue("teamId")!);
+            var success = await _taskService.DeleteTaskAsync(id, teamId);
 
             if (!success)
             {
