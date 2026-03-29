@@ -26,7 +26,7 @@ namespace Fair_Share_Backend.Controllers
         {
             var accountId = int.Parse(User.FindFirstValue(JwtRegisteredClaimNames.Sub)!);
             var result = await _teamService.CreateTeamAsync(request, accountId);
-            return CreatedAtAction(nameof(GetTeamById), new { id = result.Id }, result);
+            return CreatedAtAction(nameof(GetTeamById), new { id = result.Team.Id }, result);
         }
 
         [HttpGet("myteam")]

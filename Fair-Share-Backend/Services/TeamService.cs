@@ -11,19 +11,22 @@ namespace Fair_Share_Backend.Services
         private readonly ApplicationDbContext _context;
         private readonly TeamMapper _mapper;
         private readonly ILogger<TeamService> _logger;
+        private readonly IConfiguration _configuration;
 
         public TeamService(
             ApplicationDbContext context,
             TeamMapper mapper,
-            ILogger<TeamService> logger
+            ILogger<TeamService> logger,
+            IConfiguration configuration
         )
         {
             _context = context;
             _mapper = mapper;
             _logger = logger;
+            _configuration = configuration;
         }
 
-        public async Task<TeamResponseDto> CreateTeamAsync(
+        public async Task<CreateTeamResult> CreateTeamAsync(
             CreateTeamRequestDto request,
             int teamOwnerId
         )
@@ -42,7 +45,21 @@ namespace Fair_Share_Backend.Services
 
             _logger.LogInformation("Team created: {TeamId} - {Name}", team.Id, team.Name);
 
-            return _mapper.ToDto(team);
+            _mapper.ToDto(team);
+
+            // Update JWT
+            var jwtKey =
+                _configuration["Jwt:Key"]
+                ?? throw new InvalidOperationException("JWT Key not configured");
+            var jwtIssuer =
+                _configuration["Jwt:Issuer"]
+                ?? throw new InvalidOperationException("JWT Issuer not configured");
+            var jwtAudience =
+                _configuration["Jwt:Audience"]
+                ?? throw new InvalidOperationException("JWT Audience not configured");
+            var token = JwtGenerator.GenerateJwtToken(account, jwtKey, jwtIssuer, jwtAudience);
+
+            return new CreateTeamResult { Team = _mapper.ToDto(team), Jwt = token };
         }
 
         public async Task<TeamResponseDto?> GetTeamByIdAsync(int id)
@@ -188,10 +205,10 @@ namespace Fair_Share_Backend.Services
             }
 
             account.TeamId = null; // Removing the account from the team by setting to null
-            
+
             // Remove all task assignments for this user
-            var accountTasks = await _context.AccountTasks
-                .Where(at => at.AccountId == accountId)
+            var accountTasks = await _context
+                .AccountTasks.Where(at => at.AccountId == accountId)
                 .ToListAsync();
             _context.AccountTasks.RemoveRange(accountTasks);
 
