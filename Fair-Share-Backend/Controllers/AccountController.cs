@@ -1,19 +1,36 @@
-﻿//using Microsoft.AspNetCore.Mvc;
-//using System.IdentityModel.Tokens.Jwt;
-//using System.Security.Claims;
+﻿using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using Fair_Share_Backend.Data;
+using Fair_Share_Backend.Services;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
-//namespace Fair_Share_Backend.Controllers
-//{
-//    [ApiController]
-//    [Route("api/[controller]")]
-//    public class AccountController :Controller
-//    {
-//        [HttpGet("me")]
-//        public async Task<IActionResult> GetMyAccount()
-//        {
-//            var accountId = int.Parse(User.FindFirstValue(JwtRegisteredClaimNames.Sub)!);
+namespace Fair_Share_Backend.Controllers
+{
+    [ApiController]
+    [Route("api/[controller]")]
+    public class AccountController : Controller
+    {
+        private readonly AccountService _accountService;
 
-//            // Need to return name, email, password, points, and number of tasks completed. Do they refresh some day? wont it get very high later? In db, do I delete completed tasks? or idk
-//        }
+        public AccountController(AccountService accountService)
+        {
+            _accountService = accountService;
+        }
 
-//    }
+        [HttpGet("me")]
+        public async Task<IActionResult> GetMyAccount()
+        {
+            var accountId = int.Parse(User.FindFirstValue(JwtRegisteredClaimNames.Sub)!);
+
+            var accountData = await _accountService.GetMyAccountAsync(accountId);
+
+            if (accountData == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(accountData);
+        }
+    }
+}
