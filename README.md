@@ -1,19 +1,40 @@
 ﻿# Task Distributor: Fair Share
 
 ## Google Play Download Link
+
 Link replace here
 
+---
+
 ## Overview
-A mobile application that automatically distribute tasks among team members in a fair and balanced way. It aims to ensure equal workload while assigning based on each individual's preference. 
 
-This is the backend of the app, check out the frontend.
-https://github.com/Fair-Share-Task-Distributor-App/Fair-Share-Frontend 
+A mobile application that automatically distributes tasks among team members in a fair and balanced way. It ensures equal workload distribution while also considering individual preferences when assigning tasks.
 
-## API Endpoints
-Run the application in development and access API documentation at `http://localhost:5000/swagger` 
+This repository contains the **backend system**, built as a distributed .NET solution using .NET Aspire.
 
-## Implementation Features
-- User Authentication: Uses JWT for secure user authentication and session management.
-- Migrations: Implements Entity Framework Core for database migrations and schema management.
-- Task Scheduling Algorithm: In Progress
+Frontend repository:
+https://github.com/Fair-Share-Task-Distributor-App/Fair-Share-Frontend
 
+---
+
+## Architecture
+
+This project uses **.NET Aspire** to orchestrate multiple backend services.
+
+The system is split into multiple services:
+
+- **API Service** = Handles authentication, task and client management, and schedules to service bus
+- **Serverless Functions** = Distribute tasks at specific time from service bus
+- **Service Bus** = Enables asynchronous communication between services
+
+---
+
+## Project Structure
+
+```plaintext
+src/
+├── Api/              # ASP.NET MVC
+├── Functions/        # Serverless Functions
+aspire/
+└── AppHost/          # .NET Aspire orchestration layer
+```
