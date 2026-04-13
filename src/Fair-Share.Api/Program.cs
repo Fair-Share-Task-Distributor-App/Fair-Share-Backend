@@ -1,4 +1,3 @@
-using System.Text;
 using Fair_Share.Api;
 using Fair_Share.Api.Data;
 using Fair_Share.Api.Mappers;
@@ -6,6 +5,7 @@ using Fair_Share.Api.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,6 +13,17 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddExceptionHandler<AppExceptionHandler>();
+
+// For additional default settigns in Aspire
+builder.AddServiceDefaults();
+
+// Add Azure Service Bus queue
+builder.AddAzureServiceBusClient("servicebus");
+builder.Services.AddSingleton(sp =>
+{
+    var client = sp.GetRequiredService<Azure.Messaging.ServiceBus.ServiceBusClient>();
+    return client.CreateSender("tasksQueue");
+});
 
 // Add services to the container.
 builder.Services.AddControllers();

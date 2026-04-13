@@ -1,3 +1,4 @@
+using Azure.Messaging.ServiceBus;
 using Fair_Share.Api.Data;
 using Fair_Share.Api.DTOs.Task;
 using Fair_Share.Api.Entities;
@@ -11,16 +12,19 @@ namespace Fair_Share.Api.Services
         private readonly ApplicationDbContext _context;
         private readonly TaskMapper _mapper;
         private readonly ILogger<TaskService> _logger;
+        private readonly ServiceBusSender _serviceBusSender;
 
         public TaskService(
             ApplicationDbContext context,
             TaskMapper mapper,
-            ILogger<TaskService> logger
+            ILogger<TaskService> logger,
+            ServiceBusSender serviceBusSender
         )
         {
             _context = context;
             _mapper = mapper;
             _logger = logger;
+            _serviceBusSender = serviceBusSender;
         }
 
         public async Task<TaskResponseDto> CreateTaskAsync(CreateTaskRequestDto request)
@@ -37,6 +41,15 @@ namespace Fair_Share.Api.Services
                 .FirstAsync(t => t.Id == task.Id);
 
             _logger.LogInformation("Task created: {TaskId} - {Title}", task.Id, task.Title);
+
+            var messagePayload = System.Text.Json.JsonSerializer.Serialize(
+                new
+                {
+                    TaskId = task.Id,
+                    Time = task.AutoAssignAt
+                }
+            );
+            await _serviceBusSender.SendMessageAsync(new ServiceBusMessage(messagePayload));
 
             return _mapper.ToDto(task);
         }
@@ -112,9 +125,15 @@ namespace Fair_Share.Api.Services
             return tasks.Select(t => _mapper.ToDto(t)).ToList();
         }
 
-        public async Task<TaskResponseDto?> UpdateTaskAsync(int id, int teamId, UpdateTaskRequestDto request)
+        public async Task<TaskResponseDto?> UpdateTaskAsync(
+            int id,
+            int teamId,
+            UpdateTaskRequestDto request
+        )
         {
-            var task = await _context.Tasks.FirstOrDefaultAsync(t => t.Id == id && t.TeamOwnedId == teamId);
+            var task = await _context.Tasks.FirstOrDefaultAsync(t =>
+                t.Id == id && t.TeamOwnedId == teamId
+            );
 
             if (task == null)
             {
@@ -124,6 +143,19 @@ namespace Fair_Share.Api.Services
 
             _mapper.UpdateEntity(task, request);
             await _context.SaveChangesAsync();
+
+            // If the auto assign date is changed, queue another task with new date
+            if (request.AutoAssignAt != null)
+            {
+                var messagePayload = System.Text.Json.JsonSerializer.Serialize(
+                    new
+                    {
+                        TaskId = task.Id,
+                        Time = task.AutoAssignAt
+                    }
+                );
+                await _serviceBusSender.SendMessageAsync(new ServiceBusMessage(messagePayload));
+            }
 
             // Reload with relationships
             task = await _context
@@ -138,7 +170,9 @@ namespace Fair_Share.Api.Services
 
         public async Task<bool> DeleteTaskAsync(int id, int teamId)
         {
-            var task = await _context.Tasks.FirstOrDefaultAsync(t => t.Id == id && t.TeamOwnedId == teamId);
+            var task = await _context.Tasks.FirstOrDefaultAsync(t =>
+                t.Id == id && t.TeamOwnedId == teamId
+            );
 
             if (task == null)
             {
