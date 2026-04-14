@@ -1,25 +1,22 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-	<Sdk Name="Aspire.AppHost.Sdk" Version="9.0.0" />
+﻿<Project Sdk="Aspire.AppHost.Sdk/13.2.2">
 
-	<PropertyGroup>
+  <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <IsAspireHost>true</IsAspireHost>
-    <UserSecretsId>c455e745-a31f-401a-b653-129d348a677a</UserSecretsId>
+    <UserSecretsId>48adde09-b166-4fe0-a349-0c030627f7fd</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Aspire.Hosting.AppHost" Version="13.2.2" />
-    <PackageReference Include="Aspire.Hosting.Azure.Functions" Version="13.2.2" />
-    <PackageReference Include="Aspire.Hosting.Azure.ServiceBus" Version="13.2.2" />
-    <PackageReference Include="Aspire.Hosting.PostgreSQL" Version="13.2.2" />
+    <ProjectReference Include="..\..\src\Fair-Share.Functions\Fair-Share.Functions.csproj" />
+    <ProjectReference Include="..\..\src\Fair-Share.Api\Fair-Share.Api.csproj" />
+    <ProjectReference Include="..\..\src\test\test.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Fair-Share.Api\Fair-Share.Api.csproj" />
-    <ProjectReference Include="..\..\src\Fair-Share.Functions\Fair-Share.Functions.csproj" />
+	  <PackageReference Include="Aspire.Hosting.Azure.ServiceBus" Version="13.2.2" />
+    <PackageReference Include="Aspire.Hosting.Azure.Functions" Version="13.2.2" />
   </ItemGroup>
 
 </Project>

@@ -7,7 +7,7 @@ var postgres = builder.AddConnectionString("DefaultConnection");
 
 // Add Azure Service Bus resource
 var serviceBus = builder
-    .AddAzureServiceBus("servicebus")
+    .AddAzureServiceBus("serviceBus")
     .RunAsEmulator(e =>
     {
         e.WithLifetime(ContainerLifetime.Persistent);
@@ -21,11 +21,13 @@ var api = builder
     .WithReference(serviceBus)
     .WaitFor(postgres);
 
-// Add Azure Functions service
+//Add Azure Functions service
 var functions = builder
     .AddAzureFunctionsProject<Projects.Fair_Share_Functions>("fair-share-functions")
     .WithReference(serviceBus)
     .WithReference(postgres)
     .WaitFor(serviceBus);
+
+builder.AddAzureFunctionsProject<Projects.test>("test");
 
 builder.Build().Run();

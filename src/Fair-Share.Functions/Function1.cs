@@ -1,9 +1,8 @@
-using Azure.Messaging.ServiceBus;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Azure.Functions.Worker;
-using Microsoft.Extensions.Logging;
 using System;
 using System.Threading.Tasks;
+using Azure.Messaging.ServiceBus;
+using Microsoft.Azure.Functions.Worker;
+using Microsoft.Extensions.Logging;
 
 namespace Fair_Share.Functions
 {
@@ -16,15 +15,9 @@ namespace Fair_Share.Functions
             _logger = logger;
         }
 
-        //[Function(nameof(Function1))]
-        //public async Task Run([HttpTrigger(AuthorizationLevel.Anonymous, "get")] HttpRequest req)
-        //{
-        //    _logger.LogInformation("Hello");
-        //}
-
         [Function(nameof(Function1))]
         public async Task Run(
-            [ServiceBusTrigger("tasksQueue", Connection = "servicebus")]
+            [ServiceBusTrigger("tasksQueue", Connection = "serviceBus")]
                 ServiceBusReceivedMessage message,
             ServiceBusMessageActions messageActions
         )
