@@ -15,8 +15,8 @@ namespace Fair_Share.Api.Services
 
         public async Task<MyAccountResponseDto?> GetMyAccountAsync(int accountId)
         {
-            var account = await _context.Accounts
-                .Include(a => a.AccountTasks)
+            var account = await _context
+                .Accounts.Include(a => a.AccountTasks)
                 .ThenInclude(at => at.Task)
                 .FirstOrDefaultAsync(a => a.Id == accountId);
 
@@ -31,7 +31,6 @@ namespace Fair_Share.Api.Services
             {
                 Name = account.Name,
                 Email = account.Email,
-                Password = account.Password,
                 Points = account.Points,
                 TasksAssigned = assignedTasksCount
             };

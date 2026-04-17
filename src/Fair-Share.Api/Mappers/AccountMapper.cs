@@ -11,7 +11,6 @@ namespace Fair_Share.Api.Mappers
             {
                 Email = request.Email,
                 Name = request.Name,
-                Password = request.Password,
                 PasswordHash = passwordHash
             };
         }

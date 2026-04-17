@@ -20,10 +20,6 @@ public partial class Account
     [Column("email")]
     public string Email { get; set; } = null!;
 
-    [Column("password")]
-    [AllowNull]
-    public string? Password { get; set; }
-
     [Column("google_id")]
     [AllowNull]
     public string? GoogleId { get; set; }
