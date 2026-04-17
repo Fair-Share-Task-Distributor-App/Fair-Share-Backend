@@ -21,17 +21,19 @@ public partial class Account
     public string Email { get; set; } = null!;
 
     [Column("password")]
-    public string Password { get; set; } = null!;
+    [AllowNull]
+    public string? Password { get; set; }
 
     [Column("google_id")]
     [AllowNull]
     public string? GoogleId { get; set; }
 
     [Column("team_id")]
+    [AllowNull]
     public int? TeamId { get; set; }
 
     [Column("password_hash")]
-    public string PasswordHash { get; set; } = null!;
+    public string? PasswordHash { get; set; }
 
     [Column("points")]
     public int Points { get; set; }

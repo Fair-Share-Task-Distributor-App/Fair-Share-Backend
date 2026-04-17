@@ -58,12 +58,10 @@ namespace Fair_Share.Api.Services
                     }
                 );
 
-                // Check if user exists
+                // Check if email is already used
                 var account = await _context
                     .Accounts.Include(a => a.Team)
-                    .FirstOrDefaultAsync(a =>
-                        a.GoogleId == payload.Subject || a.Email == payload.Email
-                    );
+                    .FirstOrDefaultAsync(a => a.Email == payload.Email);
 
                 if (account == null)
                 {
