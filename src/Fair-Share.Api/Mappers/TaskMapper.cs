@@ -11,8 +11,8 @@ namespace Fair_Share.Api.Mappers
             {
                 Title = dto.Title,
                 Description = dto.Description,
-                DueAt = dto.DueAt,
-                AutoAssignAt = dto.AutoAssignAt,
+                DueAt = NormalizeUtcToUnspecified(dto.DueAt),
+                AutoAssignAt = NormalizeUtcToUnspecified(dto.AutoAssignAt),
                 Points = dto.Points,
                 IsCompleted = false,
                 TeamOwnedId = dto.TeamId
@@ -26,9 +26,9 @@ namespace Fair_Share.Api.Mappers
             if (dto.Description != null)
                 task.Description = dto.Description;
             if (dto.DueAt.HasValue)
-                task.DueAt = dto.DueAt.Value;
+                task.DueAt = NormalizeUtcToUnspecified(dto.DueAt.Value);
             if (dto.AutoAssignAt.HasValue)
-                task.AutoAssignAt = dto.AutoAssignAt.Value;
+                task.AutoAssignAt = NormalizeUtcToUnspecified(dto.AutoAssignAt.Value);
             if (dto.Points.HasValue)
                 task.Points = dto.Points.Value;
             if (dto.IsCompleted.HasValue)
@@ -62,6 +62,16 @@ namespace Fair_Share.Api.Mappers
         public List<TaskResponseDto> ToDtoList(IEnumerable<Entities.Task> tasks)
         {
             return tasks.Select(ToDto).ToList();
+        }
+
+        private DateTime NormalizeUtcToUnspecified(DateTime dt)
+        {
+            if (dt.Kind == DateTimeKind.Utc)
+            {
+                return DateTime.SpecifyKind(dt, DateTimeKind.Unspecified);
+            }
+
+            return dt;
         }
     }
 }

@@ -50,7 +50,10 @@ namespace Fair_Share.Api.Services
                     Time = task.AutoAssignAt
                 }
             );
-            await _serviceBusSender.SendMessageAsync(new ServiceBusMessage(messagePayload));
+            await _serviceBusSender.ScheduleMessageAsync(
+                new ServiceBusMessage(messagePayload),
+                new DateTimeOffset(request.AutoAssignAt)
+            );
 
             return _mapper.ToDto(task);
         }
