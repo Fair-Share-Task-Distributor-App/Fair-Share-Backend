@@ -2,7 +2,7 @@
   "profiles": {
     "Fair_Share.Functions": {
       "commandName": "Project",
-      "commandLineArgs": "--port 7261",
+      "commandLineArgs": "--port 7237",
       "launchBrowser": false
     }
   }

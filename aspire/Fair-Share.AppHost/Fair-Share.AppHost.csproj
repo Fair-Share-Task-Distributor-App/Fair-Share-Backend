@@ -9,14 +9,16 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Fair-Share.Functions\Fair-Share.Functions.csproj" />
     <ProjectReference Include="..\..\src\Fair-Share.Api\Fair-Share.Api.csproj" />
-    <ProjectReference Include="..\..\src\test\test.csproj" />
+    <ProjectReference Include="..\..\src\Fair-Share.Functions\Fair-Share.Functions.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-	  <PackageReference Include="Aspire.Hosting.Azure.ServiceBus" Version="13.2.2" />
-    <PackageReference Include="Aspire.Hosting.Azure.Functions" Version="13.2.2" />
-  </ItemGroup>
+<ItemGroup>
+  <PackageReference Include="AJP.Aspire.Hosting.AsbEmulatorUi" Version="1.0.24" />
+  <PackageReference Include="Aspire.Hosting.Azure.ServiceBus" Version="13.2.2" />
+  <PackageReference Include="Aspire.Hosting.Azure.Functions" Version="13.2.2" />
+  <PackageReference Include="Azure.Identity" Version="1.21.0" />
+  <PackageReference Include="Azure.Messaging.ServiceBus" Version="7.20.1" />
+</ItemGroup>
 
 </Project>

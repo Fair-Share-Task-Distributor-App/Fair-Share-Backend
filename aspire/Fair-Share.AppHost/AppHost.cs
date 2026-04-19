@@ -12,7 +12,7 @@ var serviceBus = builder
     {
         e.WithLifetime(ContainerLifetime.Persistent);
     });
-var queue = serviceBus.AddServiceBusQueue("tasksQueue");
+serviceBus.AddServiceBusQueue("tasksQueue").WithTestCommands();
 
 // Add API service
 var api = builder
@@ -24,10 +24,11 @@ var api = builder
 //Add Azure Functions service
 var functions = builder
     .AddAzureFunctionsProject<Projects.Fair_Share_Functions>("fair-share-functions")
-    .WithReference(serviceBus)
     .WithReference(postgres)
+    .WithReference(serviceBus)
     .WaitFor(serviceBus);
 
-builder.AddAzureFunctionsProject<Projects.test>("test");
+// Add the ASB Emulator UI
+builder.AddAsbEmulatorUi("asb-ui", serviceBus);
 
 builder.Build().Run();
