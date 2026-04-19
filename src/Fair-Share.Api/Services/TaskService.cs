@@ -46,6 +46,7 @@ namespace Fair_Share.Api.Services
                 new
                 {
                     TaskId = task.Id,
+                    PointsWorth = task.Points,
                     Time = task.AutoAssignAt
                 }
             );
@@ -151,6 +152,7 @@ namespace Fair_Share.Api.Services
                     new
                     {
                         TaskId = task.Id,
+                        PointsWorth = task.Points,
                         Time = task.AutoAssignAt
                     }
                 );
