@@ -1,3 +1,4 @@
+using System.Text;
 using Fair_Share.Api;
 using Fair_Share.Api.Data;
 using Fair_Share.Api.Mappers;
@@ -5,7 +6,6 @@ using Fair_Share.Api.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -29,9 +29,7 @@ builder.Services.AddSingleton(sp =>
 builder.Services.AddControllers();
 
 // Configure PostgreSQL with Entity Framework Core
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"))
-);
+builder.AddNpgsqlDbContext<ApplicationDbContext>(connectionName: "postgres");
 
 // Register Services
 builder.Services.AddScoped<AuthService>();
@@ -86,6 +84,13 @@ builder.Services.AddAuthorization();
 //});
 
 var app = builder.Build();
+
+// Migrate the database on startup
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    dbContext.Database.Migrate();
+}
 
 // Add exception handler middleware
 app.UseExceptionHandler(options => { });

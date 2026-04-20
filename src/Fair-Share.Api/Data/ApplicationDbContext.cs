@@ -22,9 +22,6 @@ public partial class ApplicationDbContext : DbContext
 
     public virtual DbSet<AccountTaskPreference> AccountTaskPreferences { get; set; }
 
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) =>
-        optionsBuilder.UseNpgsql("Name=ConnectionStrings:DefaultConnection");
-
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Account>(entity =>

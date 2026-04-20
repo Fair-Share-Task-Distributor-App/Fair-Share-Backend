@@ -3,7 +3,8 @@ using Microsoft.Extensions.Configuration;
 var builder = DistributedApplication.CreateBuilder(args);
 
 // Add database resource
-var postgres = builder.AddConnectionString("DefaultConnection");
+var postgres = builder.AddPostgres("postgres").WithDataVolume();
+var postgresdb = postgres.AddDatabase("fair-share-db");
 
 // Add Azure Service Bus resource
 var serviceBus = builder
@@ -17,6 +18,7 @@ serviceBus.AddServiceBusQueue("tasksQueue").WithTestCommands();
 // Add API service
 var api = builder
     .AddProject<Projects.Fair_Share_Api>("api")
+    .WithExternalHttpEndpoints()
     .WithReference(postgres)
     .WithReference(serviceBus)
     .WaitFor(postgres);
