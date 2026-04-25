@@ -2,8 +2,18 @@ using Microsoft.Extensions.Configuration;
 
 var builder = DistributedApplication.CreateBuilder(args);
 
+var acaEnv = builder.AddAzureContainerAppEnvironment("env");
+
 // Add database resource
-var postgres = builder.AddPostgres("postgres");
+var postgres = builder
+    .AddAzurePostgresFlexibleServer("postgres")
+    .WithPasswordAuthentication()
+    // Below only affects for development purposes to run as db as container.
+    .RunAsContainer(x =>
+        x.WithDataVolume()
+            .WithPgAdmin(x => x.WithLifetime(ContainerLifetime.Persistent))
+            .WithLifetime(ContainerLifetime.Persistent)
+    );
 var postgresdb = postgres.AddDatabase("fair-share-db");
 
 // Add Azure Service Bus resource
@@ -19,18 +29,32 @@ serviceBus.AddServiceBusQueue("tasksQueue").WithTestCommands();
 var api = builder
     .AddProject<Projects.Fair_Share_Api>("api")
     .WithExternalHttpEndpoints()
-    .WithReference(postgres)
+    .WithReference(postgresdb)
     .WithReference(serviceBus)
     .WaitFor(serviceBus)
-    .WaitFor(postgres);
+    .WaitFor(postgresdb)
+    .PublishAsAzureContainerApp(
+        (infrasture, app) =>
+        {
+            app.Template.Scale.MinReplicas = 0;
+            app.Template.Scale.MaxReplicas = 1;
+        }
+    );
 
 //Add Azure Functions service
 var functions = builder
     .AddAzureFunctionsProject<Projects.Fair_Share_Functions>("fair-share-functions")
-    .WithReference(postgres)
+    .WithReference(postgresdb)
     .WithReference(serviceBus)
     .WaitFor(serviceBus)
-    .WaitFor(postgres);
+    .WaitFor(postgresdb)
+    .PublishAsAzureContainerApp(
+        (infrasture, app) =>
+        {
+            app.Template.Scale.MinReplicas = 0;
+            app.Template.Scale.MaxReplicas = 1;
+        }
+    );
 
 // Add the ASB Emulator UI
 builder.AddAsbEmulatorUi("asb-ui", serviceBus);

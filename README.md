@@ -17,6 +17,10 @@ To run the application locally, start the Aspire AppHost project with
 
 This will start up all dependecies: API, Function, Service Bus and local PostgreSQL DB, and open up the Aspire Dashboard
 
+To deploy with Aspire, sign in with valid credentials to Azure and run
+
+`aspire deploy`
+
 ## Overview
 
 A mobile application that automatically distributes tasks among team members in a fair and balanced way. It ensures equal workload distribution while also considering individual preferences when assigning tasks.

@@ -29,7 +29,7 @@ builder.Services.AddSingleton(sp =>
 builder.Services.AddControllers();
 
 // Configure PostgreSQL with Entity Framework Core
-builder.AddNpgsqlDbContext<ApplicationDbContext>(connectionName: "postgres");
+builder.AddNpgsqlDbContext<ApplicationDbContext>(connectionName: "fair-share-db");
 
 // Register Services
 builder.Services.AddScoped<AuthService>();
@@ -67,22 +67,6 @@ builder
 
 builder.Services.AddAuthorization();
 
-// Add CORS if needed for frontend
-//builder.Services.AddCors(options =>
-//{
-//    options.AddPolicy(
-//        "AllowFrontend",
-//        policy =>
-//        {
-//            policy
-//                .WithOrigins(builder.Configuration["Cors:AllowedOrigins"]?.Split(',') ?? [])
-//                .AllowAnyMethod()
-//                .AllowAnyHeader()
-//                .AllowCredentials();
-//        }
-//    );
-//});
-
 var app = builder.Build();
 
 // Migrate the database on startup
@@ -112,8 +96,6 @@ if (!app.Environment.IsDevelopment())
 //app.UseStaticFiles();
 
 app.UseRouting();
-
-//app.UseCors("AllowFrontend");
 
 app.UseAuthentication();
 app.UseAuthorization();

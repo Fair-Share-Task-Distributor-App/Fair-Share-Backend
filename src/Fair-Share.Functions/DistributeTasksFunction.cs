@@ -29,7 +29,9 @@ public class DistributeTasksFunction
         var body = message.Body.ToString();
         var taskMessage = JsonSerializer.Deserialize<TaskMessage>(body);
 
-        var connectionString = Environment.GetEnvironmentVariable("ConnectionStrings__postgres");
+        var connectionString = Environment.GetEnvironmentVariable(
+            "ConnectionStrings__fair-share-db"
+        );
 
         await using var conn = new NpgsqlConnection(connectionString);
         await conn.OpenAsync();
