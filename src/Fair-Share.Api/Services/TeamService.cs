@@ -173,6 +173,8 @@ namespace Fair_Share.Api.Services
                 }
 
                 account.TeamId = teamId;
+                account.Points = (int)team.Accounts.Average(a => a.Points);
+
                 addedMembers.Add(
                     new TeamMemberDto
                     {
